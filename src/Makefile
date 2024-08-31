@@ -1,4 +1,4 @@
-DOCUMENT=thesis
+DOCUMENT=thesis-gergo-buzas-bsc
 #MODE=-interaction=batchmode
 
 all: clean xelatex
