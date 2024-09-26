@@ -1,0 +1,21 @@
+\chapter{Overview}
+The goal of the project is to improve the scalability of the Refinery web-application. As such, we have to first examine the current architecture of the application\
+ and find places where it can be improved. The scalability of an application can be greatly improved via the modification of the backend architecture, so that's what I'm goint to describe first. \ 
+After that, I'll go into detail about the different ways of how the backend could be restructured, so that we can achieve our end goal. 
+
+
+\section{Backend}
+
+The backend is a Java Jetty application, which connects with the clients through WebSocket. From now on, this will be called XTextServer. Every modification of our graph problem definition
+is sent to the XTextServer backend via the forementioned open WebSocket connection. If the user had finished the creation of the graph model
+and the generate button is pressed on the client-side, a WebSocket request containing the modelgeneration service request is sent to the server 
+The server then proceeds to generate the model based on the user input.
+
+This generation task may take a significant amount of time, so it would be wise to restructure our architecture in a way, where this generation happens on a separate server,
+ acting similar to a microservice. This way, the load would be taken off from 
+the XTextServer, and the newly created server would be the one responsible for the creation of the model.
+ Let's call this future server GeneratorServer.
+
+\section{Requirements}
+Now that we have an idea, of what can be performed to enhance the scalability of Refinery, we have to set some requirements for the
+restructuring of the backend architecture. 
