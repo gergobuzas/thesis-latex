@@ -1,21 +1,72 @@
 \chapter{Overview}
-The goal of the project is to improve the scalability of the Refinery web-application. As such, we have to first examine the current architecture of the application\
- and find places where it can be improved. The scalability of an application can be greatly improved via the modification of the backend architecture, so that's what I'm goint to describe first. \ 
-After that, I'll go into detail about the different ways of how the backend could be restructured, so that we can achieve our end goal. 
+The goal of the project is to improve the scalability of the Refinery web-application. As such, we have to first examine
+the current architecture of the application, and find places where it can be improved.
+ 
+The scalability of an application can be greatly improved via the modification of the backend architecture, so that's naturally what
+I'm going to describe first. After that, I'll go into detail about the different ways of how the backend could be restructured,
+ so that we can achieve our end goal. 
 
 
 \section{Backend}
 
-The backend is a Java Jetty application, which connects with the clients through WebSocket. From now on, this will be called XTextServer. Every modification of our graph problem definition
+The backend is a Java Jetty application, which connects to the clients through WebSocket. In the current implementation,
+this connection is used to send information to the editor server, regarding the state of our model, based on the 
+rule-defining partial modelling language of Refinery.
+From now on, this editor server will be called XTextServer. Every modification of our graph problem definition
 is sent to the XTextServer backend via the forementioned open WebSocket connection. If the user had finished the creation of the graph model
 and the generate button is pressed on the client-side, a WebSocket request containing the modelgeneration service request is sent to the server 
 The server then proceeds to generate the model based on the user input.
 
-This generation task may take a significant amount of time, so it would be wise to restructure our architecture in a way, where this generation happens on a separate server,
+This generation task may take a significant amount of time, if more users were to use the service, so it would
+ be wise to restructure our architecture in a way, where this generation happens on a separate server,
  acting similar to a microservice. This way, the load would be taken off from 
 the XTextServer, and the newly created server would be the one responsible for the creation of the model.
  Let's call this future server GeneratorServer.
 
 \section{Requirements}
-Now that we have an idea, of what can be performed to enhance the scalability of Refinery, we have to set some requirements for the
-restructuring of the backend architecture. 
+Now that we have an idea, of what we have to perform to enhance the scalability of Refinery, we have to set some requirements for the
+restructuring of the backend architecture and for the creation of the GeneratorServer service. 
+
+The requirements for the restructuring of Refinary should be as follows:
+\begin{enumerate}
+        \item The backend of the application should be scalable 
+        \item The client should be able to cancel the model generation
+        \item The client must be able to show state of the model generation  
+        \item There must be a timeout set for the model generation, so that we don't put unnecessary
+		stress on the server
+		\item (Optional) The implementation should allow the creation of other type of cliens,
+		other than web browser-based clients
+		\item (Optional) The editor and generator should be deployed together
+\end{enumerate}
+
+\section{Architectural designs in question}
+As the requirements have been set, we can examine the different ways the generation of the model could be
+moved to a separate server. In this section, I'll go into detail about the different architectures that came up during
+the planning phase. Last, but not least, I'll explain, why I chose the WebSocket implementation afterall carefully researching
+my possiblilites.
+
+\subsection{REST API}
+The first architecture that came to my mind, was a REST API. Using the Spring boot framework would allow for fast development
+of our REST API. The state of the partial modelling editor would be sent to the REST API as a POST request, and the result
+would be returned as a Json, which the client would parse, and output the model accordingly. However, it was still in question
+how the generated model should be returned to the client.
+\begin{itemize}
+        \item \textbf{Long return:}
+		The first implementation that came up, was a regular REST API, where the response of the API would only be received, after
+		the model generation had been finished. As we know REST responses shouldn't take a long time to responde to received requests.
+		The Generator is probably the slowest service of Refinery, so responding with the model details may take a fairly long time.
+		As such, the purpose of a REST API would be invalidated / slow.
+		\item \textbf{Long polling:}
+		Here, the REST API would respond immediately with a "Starting generator service" message, had it received a request.
+\end{itemize}
+The limitation of both implementations is the fact that the request cannot be cancelled from the client side. As that is one 
+of the main requirements of the architectural restructuring, this is a fact that cannot be looked over, so I concluded that 
+another architecture should be looked at for the implementation.
+
+
+\subsection{Remote Procedure Call}
+
+\subsection{WebSocket server}
+\subsubsection{Using a separate connections from client-side}
+
+\subsubsection{Using the same connection as the editor}
