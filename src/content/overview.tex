@@ -31,9 +31,8 @@ The requirements for the restructuring of Refinary should be as follows:
 \begin{enumerate}
         \item The backend of the application should be scalable 
         \item The client should be able to cancel the model generation
-        \item The client must be able to show state of the model generation  
-        \item There must be a timeout set for the model generation, so that we don't put unnecessary
-		stress on the server
+        \item The client must be able to show the state of the model generation  
+        \item There must be a timeout set for the model generation
 		\item (Optional) The implementation should allow the creation of other type of cliens,
 		other than web browser-based clients
 		\item (Optional) The editor and generator should be deployed together
@@ -65,8 +64,50 @@ another architecture should be looked at for the implementation.
 
 
 \subsection{Remote Procedure Call}
+The second architecture that came up during the planning phase was Remote Procedure Call (RPC). The generation is pretty much
+a procedure, so calling it remotely sounded like a wise choice. Using gRPC would provide us the timeout logic, and other clients
+could also be created in the future, as the generator server would function as a gRPC server. 
+However, RPCs, such as gRPC work on request-response basis. As a result of this, some kind of workaround would have to be 
+implemented in order to showcase the state of the generation on the client side, aswell as for the cancelation of the 
+model generation request. The workaround for the state-showing and request cancelation would take
+loads of effort. Maybe even a separate connection would have to be used for them. Wowever, the scalability of the
+ application would not improve, compared to the final chosen architecture. 
+As there are better options for the model generation server implementation, I didn't move forward with
+the gRPC implementation for the generator server. 
 
 \subsection{WebSocket server}
-\subsubsection{Using a separate connections from client-side}
+Last but not least, comes WebSocket. This basically would work the same way as the REST API long polling implementation,
+ however, the connection would not be closed after the initial request. This is due to the way WebSocket works.
+ WebSocket was originally invented for those usecases, where the clients
+ had to continously poll the servers for results. That put unnecessary load on the servers. However, with WebSockets, the connection 
+ is only closed, if chosen to. In our case, it means that after the model generation request is sent out by the client,
+  the connection is kept alive, and the server may send back multiple responses over the same connection.
+ This comes in handy for the representation of the state. The server can continously send to the client,
+  where the model generation is currently at.
 
-\subsubsection{Using the same connection as the editor}
+  The current implementation for the communication between the web client and the editor server is already using a WebSocket connection.
+  As such, the same cancelation and timeout logic can be applied for the generator server, meaning that those two requirements would also be satisfied.
+  After all of these considerations WebSocket seemed like the best implementation moving forward, but the way it would be implemented
+  had still to be decided:
+
+\begin{itemize}
+        \item \textbf{Using a separate connections from the webclient side}
+		This way, the webclient (or "frontend") would be the one making a connection with the generator server. This way
+		there would be two connections created from the webclient: one towards the generator server, and a separate one 
+		towards the editor server.
+
+		\item \textbf{Using the same connection as the editor}
+		In this implementation, the editor server would function as a "proxy" towards the generator server. This is made possible 
+		by the fact that in the current implementation, the webclient already makes a WebSocket connection towards the editor server, and 
+		the editor server is the one performing the generation.
+\end{itemize}
+
+After much consideration, I decided to go with the former implementation, due to the easier implementation, with no drawbacks
+to the final scalability. As written previously, the editor server is communicating with the client over WebSocket, through which
+the model generation requests are already sent over. This allows for less overall work, as the client off the application
+doesn't have to be touched. The changes to the architecture of the application will be hidden from the client.
+
+\subsection{Scalability}
+
+Now that we have gone over the architectural changes that need to be implemented, we need to take a look at how the 
+scalability of the application is really going to be improved.
