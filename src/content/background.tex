@@ -6,6 +6,9 @@
 	efficiently produce diverse solutions by refining partial models. This framework supports applications such as system-level architecture synthesis,
 	test generation for modeling tools, and traffic scenario synthesis for autonomous vehicles.
 
+	Refinery is also hosted as a web application at "https://refinery.services" and can be used as a standalone service.
+	This application allows the user to define their graph modelling problems using the specification language. 
+
 \section{Java}
 	Java \cite{java} is a widely-used, object-oriented programming language known for its platform independence, achieved through the Java Virtual Machine (JVM) 
 	which allows Java applications to run on any device or operating system. This portability, combined with its robustness, scalability, and extensive libraries,
@@ -13,8 +16,15 @@
 
 	Java supports core object-oriented programming principles like encapsulation, inheritance, and polymorphism, promoting code modularity and reusability.
 	Additionally, Java’s memory management is handled through an automatic garbage collector, which improves performance by reclaiming memory used by objects 
-	that are no longer accessible. Java also has a strong emphasis on security, providing a secure runtime environment through features such as bytecode 
+	that are no longer accessible. The garbage collector (GC) also helps developers, so that they don't have to think about memory management when writing code in Java.
+	With lower lever languages like C and C++, memory management has been a constant issue, as memory leakages worsen performance and software security can be hurt.
+	Java also has a strong emphasis on security, providing a secure runtime environment through features such as bytecode 
 	verification and sandboxing, which helps prevent unauthorized access and code manipulation.
+
+	When working with Java, a Java Development Kit (JDK) has to be installed on the system.
+	The Java Development Kit (JDK) is a distribution of Java technology by Oracle Corporation. 
+	It implements the Java Language Specification (JLS) and the Java Virtual Machine Specification (JVMS) 
+	and provides the Standard Edition (SE) of the Java Application Programming Interface (API). 
 
 \section{Gradle}
 	Gradle \cite{gradle} is a build automation tool for multi-language software development. It controls the development process in the tasks of compilation 
@@ -68,12 +78,69 @@
 	REST API would use a GET request to retrieve a record. A POST request creates a new record. A PUT request updates a record, and a DELETE request deletes one. 
 	All HTTP methods can be used in API calls. A well-designed REST API is similar to a website running in a web browser with built-in HTTP functionality.
 
+\section{Spring}
+	The Spring Framework \cite{springframework} provides a comprehensive programming and configuration model for modern Java-based enterprise applications - on any kind
+	 of deployment platform.
+
+	A key element of Spring is infrastructural support at the application level: Spring focuses on the 
+	"plumbing" of enterprise applications so that teams can focus on application-level business logic, 
+	without unnecessary ties to specific deployment environments.
+
+	Spring Boot \cite{springboot} can be used for implementing enterprise-grade microservices and RESTful APIs, where the basic dependencies needed to run Spring
+	are built into a starter project
+	to improve the speed of the development process. Project specific dependencies and 3rd party libraries 
+	can also be added during the creation of the starter project (Spring Initializr).
+	By default Spring applications use Tomcat for the server communication, but Jetty and Undertow can also be configured.
+
+
 \section{Remote Procedure Call}
 	In distributed computing, a remote procedure call (RPC) \cite{rpc} is when a computer program causes a procedure (subroutine) to execute in a different address space 
 	(commonly on another computer on a shared computer network), which is written as if it were a normal (local) procedure call, without the programmer 
 	explicitly writing the details for the remote interaction. That is, the programmer writes essentially the same code whether the subroutine is local to 
 	the executing program, or remote.
 	This is a form of client–server interaction (caller is client, executor is server), typically implemented via a request–response message passing system.
+
+\section{gRPC}
+	gRPC (gRPC Remote Procedure Calls) \cite{grpcwiki} is a cross-platform high-performance remote procedure call (RPC) framework. 
+	gRPC was initially created by Google, but is open source and is used in many organizations. 
+	Use cases range from microservices to the "last mile" of computing (mobile, web, and Internet of Things). 
+	gRPC uses HTTP/2 for transport, Protocol Buffers as the interface description language, and provides features such as authentication,
+	bidirectional streaming and flow control, blocking or nonblocking bindings, and cancellation and timeouts. 
+	It generates cross-platform client and server bindings for many languages. Most common usage scenarios include connecting services in a microservices 
+	style architecture, or connecting mobile device clients to backend services.
+
+	In gRPC, a client application can directly call a method on a server application on a different machine as if it were a local object, 
+	making it easier for you to create distributed applications and services. As in many RPC systems, gRPC is based around the idea of 
+	defining a service, specifying the methods that can be called remotely with their parameters and return types. \cite{grpcspec}
+	
+	\begin{figure}[h!]
+		\includegraphics{include/imgs/grpc_works.PNG}	
+		\caption{gRPC server and the clients \cite{grpcspec}}
+	\end{figure}
+
+	On the server side, the server implements this interface and runs a gRPC server to handle client calls. On the client side, the
+	client has a stub (referred to as just a client in some languages) that provides the same methods as the server.
+
+	gRPC clients and servers can run and talk to each other in a variety of environments - from servers inside Google to your own desktop - 
+	and can be written in any of gRPC’s supported languages. So, for example, you can easily create a gRPC server in Java with clients 
+	in Go, Python, or Ruby. In addition, the latest Google APIs will have gRPC versions of their interfaces, letting you easily build Google functionality 
+	into your applications.
+
+	\subsection{gRPC core concepts}
+
+	Some of the core concepts of gRPC include \cite{grpcspec2}:
+	\begin{itemize}
+		\item \textbf{Unary RPC:} This is the simplest type of RPC. The client sends a single message and receives a single response. 
+		\item \textbf{Server streaming RPC:} The server responds with multiple responses to the client. 
+		After sending all its messages, the server’s status details (status code and optional status message) and optional trailing metadata are sent to the client.
+		This completes processing on the server side. The client completes once it has all the server’s messages.
+		\item \textbf{Client streaming RPC:} The client sends multiple messages and the server responds with one response message (along with its status details and optional trailing metadata). 
+		\item \textbf{Bidirectional streaming RPC:} The call is initiated by the client invoking the method and the server receiving the client metadata, method name, and deadline. The server can choose to send back its initial metadata or wait for the client to start streaming messages.
+		Client- and server-side stream processing is application specific. Since the two streams are independent, the client and server can read and write messages in any order.
+		\item \textbf{Deadlines/Timeouts:} gRPC allows clients to specify how long they are willing to wait for an RPC to complete. On the server side, the server can query to see if a particular RPC has timed out, or how much time is left to complete the RPC.
+		\item \textbf{RPC termination:} In gRPC, both the client and server make independent and local determinations of the success of the call, and their conclusions may not match. This means that, for example, you could have an RPC that finishes successfully on the server side (“I have sent all my responses!”) but fails on the client side (“The responses arrived after my deadline!”). It’s also possible for a server to decide to complete before a client has sent all its requests.
+		\item \textbf{Cancelling an RPC:} Either the client or the server can cancel an RPC at any time. A cancellation terminates the RPC immediately so that no further work is done. The changes made before the cancellation are not rolled back.
+	\end{itemize}
 
 \section{WebSocket}
 	The WebSocket Protocol \cite{websocket} enables two-way communication between a client
@@ -82,19 +149,19 @@
 	model used for this is the origin-based security model commonly used
 	by web browsers.  The protocol consists of an opening handshake
 	followed by basic message framing, layered over TCP.  The goal of
-	this technology is to provide a mechanism for browser-based
-	applications that need two-way communication with servers that does
-	not rely on opening multiple HTTP connections
+	this technology is to provide a mechanism for applications that need two-way communication with servers that does
+	not rely on opening multiple HTTP connections.
+
+	\begin{figure}[h!]
+		\includegraphics{include/imgs/http.PNG}
+		\caption{HTTP connection}
+	\end{figure}
 
 	Historically, creating web applications that need bidirectional
 	communication between a client and a server (e.g., instant messaging
 	and gaming applications) has required an abuse of HTTP to poll the
 	server for updates while sending upstream notifications as distinct
 	HTTP calls.
-	\begin{figure}[h!]
-		\includegraphics{include/http.PNG}
-		\caption{HTTP connection}
-	\end{figure}
 	This results in a variety of problems:
 
 	\begin{enumerate}
@@ -111,10 +178,24 @@
 	traffic in both directions.  This is what the WebSocket Protocol
 	provides.
 
-	\begin{figure}
-		\includegraphics{include/websocket.PNG}
+	\begin{figure}[h!]
+		\includegraphics{include/imgs/websocket.PNG}
 		\caption{WebSocket connection}
 	\end{figure}
+
+	\subsection{WebSocket under-the-hood}
+		The lifecycle of a WebSocket communication between a client and a server is as follows:
+		\begin{enumerate}
+			\item \textbf{The WebSocket communication starts with an upgrade HTTP request from the client to the server.}
+			
+			In the request's header the upgrade is set to be the WebSocket protocol, so that the server knows, that client wants to establish a WebSocket connection.
+			The security version of the WebSocket protocol and a base64 encoded key (Sec-WebSocket-Key) are sent in this upgrade request. 
+
+			\item  \textbf{The server responds to the upgrade request.}
+
+			The server acknowledges the upgrade by the client, and sends back the Sec-WebSocket-Accept
+		\end{enumerate}
+
 
 \section{Shell}
 	In computing, a shell \cite{shell} is a computer program that exposes an operating system's services to a human user or other programs. 
