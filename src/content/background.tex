@@ -399,23 +399,124 @@
 
 \section{Amazon-related cloud technologies}
 	\subsection{Amazon Web Services(AWS)}
-	Amazon Web Services (AWS) is the public cloud offerring by the parent company Amazon. AWS has a vast offering
-	of services, which help its end-users manage the infrastructures needed to host their own applications, 
-	microservices, APIs and what not.
-	AWS services are delivered to customers via a network of AWS server farms located throughout the world.
+		Amazon Web Services (AWS) is the public cloud offerring by the parent company Amazon. AWS has a vast offering
+		of services, which help its end-users manage the infrastructures needed to host their own applications, 
+		microservices, APIs and what not.
+		AWS services are delivered to customers via a network of AWS server farms located throughout the world.
 
-	In the following sections (2.14.2 - 2.14.6), I will go into detail what some of those services are and how
-	they can be beneficial for the users of those services.
+		In the following sections (2.14.2 - 2.14.6), I will go into detail what some of those services are and how
+		they can be beneficial for the users of those services.
 
 	\subsection{Amazon Elastic Compute Cloud (EC2)}
+		Amazon Elastic Compute Cloud (Amazon EC2) \cite{ec2} provides on-demand, scalable computing capacity in the Amazon 
+		Web Services (AWS) Cloud. Using Amazon EC2 reduces hardware costs so users can develop and deploy applications faster. 
+		Amazon EC2 can be used to launch as many or as few virtual servers as needed, configure security and networking, 
+		and manage storage. Capacity can be added (upscale) to handle compute-heavy tasks, such as monthly or yearly processes,
+		or spikes in website traffic. When usage decreases, the capacity can be reduced (downscale) again.
+
+		An EC2 instance is a virtual server in the AWS Cloud. When an EC2 instance is launched, the instance type that the 
+		user specifies determines the hardware available to the instance. Each instance type offers a different balance of 
+		compute, memory, network, and storage resources. Amazon EC2 provides the following high-level features:
+		\begin{itemize}
+			\item \textbf{Instances:} Virtual servers.
+			\item \textbf{Amazon Machine Images (AMIs):} Preconfigured templates for the instances that package the components 
+			needed for the server (including the operating system and additional software).
+			\item \textbf{Instance types:} Various configurations of CPU, memory, storage, networking capacity, and graphics hardware for the instances.
+			\item \textbf{Amazon EBS volumes:} Persistent storage volumes for the user's data using Amazon Elastic Block Store (Amazon EBS).
+			\item \textbf{Instance store volumes:} Storage volumes for temporary data that is deleted when the user 
+			stops, hibernates, or terminates their instance.
+			\item \textbf{Key pairs:} Secure login information for user instances. AWS stores the public key and the user stores 
+			the private key in a secure place.
+			\item \textbf{Security groups:} A virtual firewall that allows users to specify the protocols, ports, and 
+			source IP ranges that can reach their instances, and the destination IP ranges to which their instances can connect. 
+		\end{itemize}
 
 	\subsection{Amazon Elastic Container Service (ECS)}
+		Amazon Elastic Container Service (Amazon ECS) \cite{ecs} is a fully managed container orchestration service that helps 
+		you easily deploy, manage, and scale containerized applications. As a fully managed service, Amazon ECS comes 
+		with AWS configuration and operational best practices built-in. It's integrated with both AWS and third-party tools, 
+		such as Amazon Elastic Container Registry and Docker. This integration makes it easier for teams to focus on 
+		building the applications, not the environment. You can run and scale your container workloads across AWS 
+		Regions in the cloud, and on-premises, without the complexity of managing a control plane.
+
+		There are three main layers in Amazon ECS:
+		\begin{enumerate}
+			\item \textbf{Capacity:} The infrastructure where the users runs their containers. Options include Amazon EC2, 
+			AWS Fargate (a serverless, pay-as-you-go compute engine, where the server doesn't have to be managed for our service to run),
+			and On-prem virtual machines and servers (infrastructure outside of Amazon) 
+			\item \textbf{Controller:} The deployment and management of the applications that are run on the containers. The Amazon
+			ECS scheduler is the software that manages / controls the applications.
+			\item \textbf{Provisioning:} The tools used for interfacing with the ECS scheduler to deploy and manage the applications.
+			and containers. Options include the AWS Management Console (Web GUI), AWS Command Line Interface (CLI), 
+			AWS Software Development Kits (SDKs).
+		\end{enumerate}
 
 	\subsection{Virtual Private Cloud (VPC)}
+		With Amazon Virtual Private Cloud (Amazon VPC) \cite{vpc}, you can launch AWS resources in a logically 
+		isolated virtual network that you've defined. This virtual network closely resembles a traditional network 
+		that you'd operate in your own data center, with the benefits of using the scalable infrastructure of AWS.
 
-	\subsection{Application Load Balancing (ALB)}
+		Features include:
+		\begin{itemize}
+			\item \textbf{Subnets:} A subnet is a range of IP addresses in your VPC. A subnet must reside in a single Availability Zone. 
+			After you add subnets, you can deploy AWS resources in your VPC.
+			\item \textbf{IP addressing:} You can assign IP addresses, both IPv4 and IPv6, to your VPCs and subnets. 
+			You can also bring your public IPv4 addresses and IPv6 GUA addresses to AWS and allocate them to resources in your VPC, 
+			such as EC2 instances, NAT gateways, and Network Load Balancers.
+			\item \textbf{Routing:} Use route tables to determine where network traffic from your subnet or gateway is directed.
+			\item \textbf{Gateways and endpoints:} A gateway connects your VPC to another network. For example, use an internet gateway 
+			to connect your VPC to the internet. Use a VPC endpoint to connect to AWS services privately, without the use of an 
+			internet gateway or NAT device.
+			\item \textbf{Peering connections:} Use a VPC peering connection to route traffic between the resources in two VPCs.
+			\item \textbf{Traffic Mirroring:} Copy network traffic from network interfaces and send it to security and 
+			monitoring appliances for deep packet inspection.
+			\item \textbf{Transit gateways:} Use a transit gateway, which acts as a central hub, to route traffic between your VPCs, 
+			VPN connections, and AWS Direct Connect connections.
+			\item \textbf{VPC Flow Logs:} A flow log captures information about the IP traffic going to and from network interfaces in your VPC.
+			\item \textbf{VPN connections:} Connect your VPCs to your on-premises networks using AWS Virtual Private Network (AWS VPN). 
+		\end{itemize}
 
-	\subsection{Auto-Scaling}
+	\subsection{Elastic Load Balancing (ELB)}
+		Elastic Load Balancing \cite{elb} automatically distributes your incoming traffic across multiple targets, 
+		such as EC2 instances, containers, and IP addresses, in one or more Availability Zones. 
+		It monitors the health of its registered targets, and routes traffic only to the healthy targets. 
+		Elastic Load Balancing scales your load balancer as your incoming traffic changes over time. 
+		It can automatically scale to the vast majority of workloads.
+
+		Elastic Load Balancing supports the following load balancers: 
+		\begin{itemize}
+			\item Application Load Balancers
+			\item Network Load Balancers
+			\item Gateway Load Balancers
+			\item Classic Load Balancers
+		\end{itemize}
+
+		\subsubsection{Application Load Balancer}
+			An Application Load Balancer \cite{elb} functions at the application layer, the seventh layer of the Open Systems Interconnection (OSI)
+			model. After the load balancer receives a request, it evaluates the listener rules in priority order to determine which 
+			rule to apply, and then selects a target from the target group for the rule action. 
+			You can configure listener rules to route requests to different target groups based on the content of the application 
+			traffic. Routing is performed independently for each target group, even when a target is registered with multiple target groups. 
+			You can configure the routing algorithm used at the target group level. 
+			The default routing algorithm is round robin; alternatively, you can specify the least outstanding requests routing algorithm.
+
+			You can add and remove targets from your load balancer as your needs change, without disrupting the overall 
+			flow of requests to your application. Elastic Load Balancing scales your load balancer as traffic to your application changes over time. 
+			Elastic Load Balancing can scale to the vast majority of workloads automatically.
+
+			You can configure health checks, which are used to monitor the health of the registered targets so that the 
+			load balancer can send requests only to the healthy targets.
+
+	\subsection{Application Auto Scaling}
+		Application Auto Scaling \cite{autoscale} is a web service for developers and system administrators 
+		who need a solution for automatically scaling their scalable resources for individual AWS services beyond Amazon EC2. 
+
+		Application Auto Scaling allows you to automatically scale your scalable resources according to conditions that you define.
+		\begin{itemize}
+			\item \textbf{Target tracking scaling} – Scale a resource based on a target value for a specific CloudWatch metric.
+			\item \textbf{Step scaling} – Scale a resource based on a set of scaling adjustments that vary based on the size of the alarm breach.
+			\item \textbf{Scheduled scaling} – Scale a resource one time only or on a recurring schedule.
+		\end{itemize}
 
 \section{Containers}
 
