@@ -114,7 +114,9 @@
 	defining a service, specifying the methods that can be called remotely with their parameters and return types. \cite{grpcspec}
 	
 	\begin{figure}[h!]
-		\includegraphics{include/imgs/grpc_works.PNG}	
+		\begin{center}
+			\includegraphics[scale=0.8]{include/imgs/grpc_works.PNG}	
+		\end{center}
 		\caption{gRPC server and the clients \cite{grpcspec}}
 	\end{figure}
 
@@ -126,7 +128,7 @@
 	in Go, Python, or Ruby. In addition, the latest Google APIs will have gRPC versions of their interfaces, letting you easily build Google functionality 
 	into your applications.
 
-	\subsection{gRPC core concepts}
+	\subsection{Core concepts}
 
 	Some of the core concepts of gRPC include \cite{grpcspec2}:
 	\begin{itemize}
@@ -183,19 +185,94 @@
 		\caption{WebSocket connection}
 	\end{figure}
 
-	\subsection{WebSocket under-the-hood}
+	\subsection{Connection lifecycle}
 		The lifecycle of a WebSocket communication between a client and a server is as follows:
 		\begin{enumerate}
 			\item \textbf{The WebSocket communication starts with an upgrade HTTP request from the client to the server.}
 			
 			In the request's header the upgrade is set to be the WebSocket protocol, so that the server knows, that client wants to establish a WebSocket connection.
 			The security version of the WebSocket protocol and a base64 encoded key (Sec-WebSocket-Key) are sent in this upgrade request. 
+			\begin{figure}[h!]
+				\begin{lstlisting}[language=bash]
+				GET /xtext-service HTTP/1.1
+				Host: refinery.services
+				User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0
+				Accept: */*
+				Accept-Language: en-US,en;q=0.5
+				Accept-Encoding: gzip, deflate, br, zstd
+				Sec-WebSocket-Version: 13
+				Origin: https://refinery.services
+				Sec-WebSocket-Protocol: tools.refinery.language.web.xtext.v1
+				Sec-WebSocket-Extensions: permessage-deflate
+				Sec-WebSocket-Key: e6U+LNmInDXCSoVI7FswTQ==
+				Connection: keep-alive, Upgrade
+				Sec-Fetch-Dest: empty
+				Sec-Fetch-Mode: websocket
+				Sec-Fetch-Site: same-origin
+				Pragma: no-cache
+				Cache-Control: no-cache
+				\end{lstlisting}
+				\caption{Example WebSocket upgrade request}
+			\end{figure}
 
 			\item  \textbf{The server responds to the upgrade request.}
 
-			The server acknowledges the upgrade by the client, and sends back the Sec-WebSocket-Accept
+			The server acknowledges the upgrade by the client, and sends back the Sec-WebSocket-Accept.
+			\begin{figure}[h!]
+				\begin{lstlisting}[language=bash]
+				HTTP/1.1 101 Switching Protocols
+				Date: Mon, 11 Nov 2024 19:02:27 GMT
+				Connection: upgrade
+				Server: Jetty(12.0.14)
+				Cache-Control: no-cache, no-store, max-age: 0, must-revalidate
+				Expires: Thu, 01 Jan 1970 00:00:00 GMT
+				Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' data:; manifest-src 'self'; worker-src 'self' blob:;
+				X-Content-Type-Options: nosniff
+				X-Frame-Options: DENY
+				Referrer-Policy: strict-origin
+				Cross-Origin-Opener-Policy: same-origin
+				Cross-Origin-Embedder-Policy: require-corp
+				Cross-Origin-Resource-Policy: cross-origin
+				Sec-WebSocket-Protocol: tools.refinery.language.web.xtext.v1
+				Sec-WebSocket-Extensions: permessage-deflate
+				Upgrade: websocket
+				\end{lstlisting}
+				\caption{Example WebSocket upgrade response (handshake)}
+			\end{figure}
+
+			\item \textbf{Communication between server and client}
+
+			The communication is handled between the two connected endpoints via WebSocket frames. I will go into detail of the frames in section 2.10.2.
+
+			\item \textbf{Either the server or the client initiates disconnect via a connection close frame}
 		\end{enumerate}
 
+	\subsection{WebSocket frames}
+		WebSocket frames are the barebones of the communication between two connected endpoints. If the message we are trying to send is too big it is fragmented
+		into multiple frames.
+		A WebSocket frame consists of the following:
+		\begin{itemize}
+			\item FIN (1 bit): Indicates that it is a final fragment in a message
+			\item RSV1-3 (3bits): Reserved bits
+			\item Opcode (4bits): Indicates the message type. According to the RFC specification, the values indicate:
+			\begin{itemize}
+				\item 0x0 denotes a continuation frame
+      			\item 0x1 denotes a text frame
+				\item 0x2 denotes a binary frame
+				\item 0x3-0x7 are reserved for further non-control frames
+				\item 0x8 denotes a connection close
+				\item 0x9 denotes a ping
+				\item 0xA denotes a pong
+				\item 0xB-F are reserved for further control frames
+			\end{itemize}	
+			\item Mask (1 bit): Indicates whether the payload data is masked by the masking key
+			\item Payload length (7bits, 7+16bits or 7+64bits): The lenght of the payload
+			\item Payload data 
+		\end{itemize}
+		The ping and pong frames are used for keeping the connection alive, if no communication is happening
+		 between the endpoints otherwise. This can be considered as the "keep-alive" function of the protocol. If no pong answer is sent to the
+		ping request, the connection is closed.
+		
 
 \section{Shell}
 	In computing, a shell \cite{shell} is a computer program that exposes an operating system's services to a human user or other programs. 
@@ -253,27 +330,95 @@
 		, where both the service and the infrastructure is managed and maintained by the cloud service provider.
 	\end{itemize}
 
-\subsection{Cloud Native}
+	\subsection{Cloud Native}
+		Cloud native \cite{cloudnative} is the software approach of building, deploying, and managing modern applications 
+		in cloud computing environments. Modern companies want to build highly scalable, flexible, and 
+		resilient applications that they can update quickly to meet customer demands. 
+		To do so, they use modern tools and techniques that inherently support application
+		development on cloud infrastructure. These cloud-native technologies support fast 
+		and frequent changes to applications without impacting service delivery, providing
+		adopters with an innovative, competitive advantage.
 
-\subsection{Scaling}
+	\subsection{Scaling}
+		Scaling \cite{scaling} in cloud computing refers to the ability to increase or decrease IT resources as
+		needed to meet changing demand. Scalability is one of the hallmarks of the cloud and the primary driver 
+		of its exploding popularity with businesses. Scaling allows the businesses to pay only for the resources that
+		they truly need.
+		\begin{itemize}
+			\item \textbf{Vertical scaling:} (also referred to as “scaling up” or “scaling down”) 
+			You add or subtract power to an existing cloud server upgrading memory (RAM),
+			storage or processing power (CPU).
+			Usually this means that the scaling has an upper limit based on the capacity of the server
+			or machine being scaled; scaling beyond that often requires downtime.
+			\item \textbf{Horizontal scaling:} (also referred to as "scaling in" or "scaling out"), 
+			You add more resources like servers to your system to spread out the workload across machines, 
+			which in turn increases performance and storage capacity. 
+			Horizontal scaling is especially important for businesses with high availability services requiring 
+			minimal downtime.
+		\end{itemize}
 
-\subsection{Load Balancing}
+	\subsection{Load Balancing}
+		Load balancing \cite{loadbalancing} is the practice of distributing computational workloads between two or more computers. 
+		On the Internet, load balancing is often employed to divide network traffic among several servers. 
+		This reduces the strain on each server and makes the servers more efficient, speeding up performance and 
+		reducing latency. Load balancing is essential for most Internet applications to function properly. 
+		By dividing user requests among multiple servers, user wait time is vastly cut down. 
+		This results in a better user experience.
 
-\subsection{Amazon-related technologies}
-\subsubsection{Amazon Web Services(AWS)}
+		Load balancing is handled by a tool or application called a load balancer. A load balancer can be 
+		either hardware-based or software-based. 
+		\begin{itemize}
+			\item \textbf{Hardware load balancers} require the installation of a 
+		dedicated load balancing device.
+			\item \textbf{Software-based load balancers} can run on a server, on a virtual machine, 
+		or in the cloud.
+		\end{itemize}
+		Content delivery networks (CDN) often include load balancing features.
+		When a request arrives from a user, the load balancer assigns the request to a given server, 
+		and this process repeats for each request. Load balancers determine which server should handle each request 
+		based on a number of different algorithms. These algorithms fall into two main categories: static and dynamic.
 
-\subsubsection{Amazon Elastic Compute Cloud (EC2)}
+		\begin{itemize}
+			\item \textbf{Static load balancing} algorithms distribute workloads without taking into account the current 
+			state of the system. A static load balancer will not be aware of which servers are performing 
+			slowly and which servers are not being used enough. 
+			Instead it assigns workloads based on a predetermined plan. 
+			
+			Static load balancing is quick to set up,
+			but can result in inefficiencies. Round robin DNS and client-side random load balancing are 
+			two common forms of static load balancing.
+			\item \textbf{Dynamic load balancing} algorithms take the current availability, workload, 
+			and health of each server into account. 
+			They can shift traffic from overburdened or poorly performing servers to underutilized servers, 
+			keeping the distribution even and efficient. However, dynamic load balancing is more difficult 
+			to configure. A number of different factors play into server availability: 
+			the health and overall capacity of each server, the size of the tasks being distributed, and so on.
 
-\subsubsection{Amazon Elastic Container Service (ECS)}
+			There are several types of dynamic load balancing algorithms, including least connection, weighted least connection, resource-based, and geolocation-based load balancing.
+		\end{itemize}
 
-\subsubsection{Virtual Private Cloud (VPC)}
+\section{Amazon-related cloud technologies}
+	\subsection{Amazon Web Services(AWS)}
+	Amazon Web Services (AWS) is the public cloud offerring by the parent company Amazon. AWS has a vast offering
+	of services, which help its end-users manage the infrastructures needed to host their own applications, 
+	microservices, APIs and what not.
+	AWS services are delivered to customers via a network of AWS server farms located throughout the world.
 
-\subsubsection{Application Load Balancing (ALB)}
+	In the following sections (2.14.2 - 2.14.6), I will go into detail what some of those services are and how
+	they can be beneficial for the users of those services.
 
-\subsubsection{EC2 Auto Scaling}
+	\subsection{Amazon Elastic Compute Cloud (EC2)}
+
+	\subsection{Amazon Elastic Container Service (ECS)}
+
+	\subsection{Virtual Private Cloud (VPC)}
+
+	\subsection{Application Load Balancing (ALB)}
+
+	\subsection{Auto-Scaling}
 
 \section{Containers}
 
-\subsection{Docker}
+	\subsection{Docker}
 
-\subsection{Docker compose}
+	\subsection{Docker compose}
