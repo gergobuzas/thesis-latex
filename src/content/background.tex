@@ -519,7 +519,47 @@
 		\end{itemize}
 
 \section{Containers}
+	Containerization \cite{container} is the packaging together of software code with all it’s necessary 
+	components like 
+	libraries, frameworks, and other dependencies so that they are isolated in their own "container."
+	
+	This is done so that the software or application within the container can be moved and run consistently 
+	in any environment and on any infrastructure, independent of that environment or infrastructure’s 
+	operating system. It’s basically a fully functional 
+	and portable computing environment.
+
+	The "lightweight" or portability characteristic of containers comes from their ability to share 
+	the host machine’s operating system kernel, negating the need for a separate operating system for 
+	each container and allowing the application to run the same on any infrastructure 
+	even within virtual machines (VMs).
+
+	Containerization and virtualization are similar in that they both allow for full isolation of 
+	applications so that they can be operational in multiple environments. Where the main differences 
+	lie are in size and portability (with containers being the more compact). 
+
+	Containers are often used to package single functions that perform specific tasks—known as a microservice. 
+	Microservices are the breaking up of the parts of an application into smaller, more specialized services. 
+	This allows developers to focus on working on a specific area of an application, without impacting 
+	the app’s overall performance. 
 
 	\subsection{Docker}
+	Docker is an open platform for developing, shipping, and running applications. \cite{docker}
+	Docker provides the ability to package and run an application in a loosely isolated environment 
+	called a container. The isolation and security lets you run many containers simultaneously 
+	on a given host.
+
+	Docker containers can be created by running docker images. Images are templates 
+	containing the read-only instructions needed 
+	to create the container running our application. To build an image, the user has to write a Dockerfile
+	where they specify all of the steps needed to build their image (like linking libraries, exposing ports, 
+	setting environment variables, etc.)
+
+	The docker container is the running instance of the docker image. Those can be run by the use of the docker cli.
+
 
 	\subsection{Docker compose}
+	Docker Compose \cite{dockercompose} is a tool for defining and running multi-container applications. It is the key to unlocking a streamlined and efficient development and deployment experience.
+
+	Compose simplifies the control of your entire application stack, making it easy to manage services, networks, and volumes in a single, comprehensible YAML configuration file. Then, with a single command, you create and start all the services from your configuration file.
+
+	Compose works in all environments; production, staging, development, testing, as well as CI workflows.0
