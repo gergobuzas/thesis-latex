@@ -7,9 +7,29 @@
 % Abstract in Hungarian
 %----------------------------------------------------------------------------
 \chapter*{Kivonat}\addcontentsline{toc}{chapter}{Kivonat}
+	A gráf analízisos feladatokat a parciális modellezésre lehet visszavezetni. 
+	A parciális modellezés formális módszereivel lehetőség nyílik egy adott feladat megoldásainak ellenőrzésére, releváns tesztadatok automatikus generálásával, amelyeket a parciális modell definícióira alapozunk.
 
-Jelen dokumentum egy diplomaterv sablon, amely formai keretet ad a BME Villamosmérnöki és Informatikai Karán végző hallgatók által elkészítendő szakdolgozatnak és diplomatervnek. A sablon használata opcionális. Ez a sablon \LaTeX~alapú, a \emph{TeXLive} \TeX-implementációval és a PDF-\LaTeX~fordítóval működőképes.
+	Számos eszköz elérhető a parciális modellek elemzésére, azonban a használatukhoz szükséges fejlesztőkörnyezet beállítása a legtöbb felhasználó számára nehézséget okozhat. Emellett ezek az elemzési módszerek gyakran olyan erőforrásigénnyel járnak, amely meghaladja a személyi munkaállomások kapacitását.	
 
+	Egy felhőalapú környezetben futtatható parciális modellezési eszköz használata meg
+	oldást jelent a számítási kapacitás hiányára, és kiküszöböli a felhasználók számára a
+ 	szükséges konfigurációs terheket.
+
+	A Refinery egy parciális modellező program, amely két fő komponensből áll: egy parciális
+	nyelvi szerkesztőből és egy gráf megoldóból.
+
+	A szakdolgozatom végső célja, hogy megvizsgáljam a Refinery gráf-modell generátor webalkalmazás jelenlegi infrastrukturális megvalósítását, és feltárjam azokat a területeket, ahol javításokra van lehetőség (legyen szó költségekről, válaszidőkről, rendelkezésre állásról vagy fenntarthatóságról).
+
+	A jelenlegi infrastruktúra bemutatását követően megvizsgálom, hogyan lehetne javítani a skálázhatóságát,
+	 részletezve az egyes megvalósítási lehetőségek előnyeit és hátrányait, 
+	 valamint összehasonlítva, hogy ezek mennyire felelnek meg a dolgozat előtt meghatározott követelményeknek.
+
+	A végső megoldást az Amazon AWS infrastruktúráján, az Elastic Container Services-t használva 
+	valósítottam meg.
+
+	A megoldásom értékeléséhez Python szkriptekkel végeztem teszteket, 
+	amelyek azt vizsgálták, hogyan javultak a válaszidők több egyidejű generálási kérés esetén.
 
 
 \vfill
@@ -20,8 +40,33 @@ Jelen dokumentum egy diplomaterv sablon, amely formai keretet ad a BME Villamosm
 % Abstract in English
 %----------------------------------------------------------------------------
 \chapter*{Abstract}\addcontentsline{toc}{chapter}{Abstract}
+	Graph analysis problems can be approached through partial modeling. 
+	By leveraging formal methods of partial modeling, these problems can be verified using 
+	automatically generated test data derived from the partial model definitions. 
 
-This document is a \LaTeX-based skeleton for BSc/MSc~theses of students at the Electrical Engineering and Informatics Faculty, Budapest University of Technology and Economics. The usage of this skeleton is optional. It has been tested with the \emph{TeXLive} \TeX~implementation, and it requires the PDF-\LaTeX~compiler.
+	While various tools exist for partial model analysis, setting up the necessary development 
+	environment can be challenging for many users. Moreover, the computational demands of 
+	these methods often exceed the capacity of personal workstations.
+
+	A cloud-based partial modeling tool can address these challenges by providing the required 
+	computational resources and eliminating the complexity of local configuration. 
+	
+	Refinery 
+	is an example of such a tool, comprising two primary components: a partial language editor and a graph solver.
+
+	The end goal of my thesis, is to examine the current infrastructural implementation of the Refinery graph-model
+	generator web application, and find ways where it can be improved (whether it be related to costs, response times,
+	availability or maintainability).
+
+	After describing the current infrastructure, I look into ways, how the scalability can be improved,
+	and go into detail regarding the pros and the cons of each implementation. I compare how each of them
+	satisfy the specifications that had been made before the thesis.
+
+	The final implementation is deployed using Amazon's AWS infrastructure and Elastic Container Services. 
+	
+	For evaluating my solution, testing was performed via Python scripts
+	which checked how response times improved for multiple simultaneous generation requests.
+
 
 
 \vfill

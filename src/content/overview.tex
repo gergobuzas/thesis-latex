@@ -1,27 +1,72 @@
 \chapter{Overview}
-The goal of the project is to improve the scalability of the Refinery web-application. As such, we have to first examine
-the current architecture of the application, and find places where it can be improved.
- 
-The scalability of an application can be greatly improved via the modification of the backend architecture, so that's naturally what
-I'm going to describe first. After that, I'll go into detail about the different ways of how the backend could be restructured,
- so that we can achieve our end goal. 
+	The goal of the project is to improve the scalability of the Refinery web-application. 
+	The scalability of an application is basically allowing our application to handle bigger loads and handle more simultaneous connections.
+	This can mean reducing the operating costs and / or having better response times for each requests that the users of the application make. 
 
+	As such, the current
+	infrastructure has to be understood, and only then can ways be found, how improvements can be made.
+
+	Scalability can be greatly improved via the modification of the backend architecture of an application, so that's naturally what
+	I'm going to describe in greater detail. 
+
+	After examining the current infrastructure and implementation of the graph generator, 
+	I'll go into detail about the different approaches and ideas of how the backend could be restructured,
+	so that we can achieve our goal in mind: improved scalability. 
+
+\section{Frontend}
+	The frontend of the Refinery web application is implemented using the React library. As a result, most of it is written in Typescript.
+	As these are static websites, the production implementation is using Amazon's S3 buckets, as it provides a cheaper implementation
+	than Amazon's EC2. 
+	It basically works as a text editor, where the users can define the rules for their graph models, and see whether
+	their rules are semantically / syntactically correct. If so, they can generate a model based on their defined rules
+	via the press of a button, which sends the states of the text editor to the backend.
 
 \section{Backend}
 
-The backend is a Java Jetty application, which connects to the clients through WebSocket. In the current implementation,
-this connection is used to send information to the editor server, regarding the state of our model, based on the 
-rule-defining partial modelling language of Refinery.
-From now on, this editor server will be called XTextServer. Every modification of our graph problem definition
-is sent to the XTextServer backend via the forementioned open WebSocket connection. If the user had finished the creation of the graph model
-and the generate button is pressed on the client-side, a WebSocket request containing the modelgeneration service request is sent to the server 
-The server then proceeds to generate the model based on the user input.
+	The backend is a Java Jetty application. The clients connect to this server via WebSocket. 
+	In the current implementation,
+	this connection is used to send live information to the editor server, 
+	regarding the state of the user-defined model.
+	This state is based on what the user of the application wrote in the text editor in the
+	rule-defining partial modelling language of Refinery. After each modification, only the differences
+	from the last saved state are sent to the server.
 
-This generation task may take a significant amount of time, if more users were to use the service, so it would
- be wise to restructure our architecture in a way, where this generation happens on a separate server,
- acting similar to a microservice. This way, the load would be taken off from 
-the XTextServer, and the newly created server would be the one responsible for the creation of the model.
- Let's call this future server GeneratorServer.
+	The server uses XText for keeping track of the state of the model. It is a library provided
+	by Eclipse, and it makes the creation of domain specific languages (such as the one, used for Refinery)
+	much easier. The most important usecase for XText, is the saving and verification of the text, 
+	written in the editor.
+
+	When a client (= an instance of the Refinery Frontend) makes a connection to backend server, a WebSocket 
+	connection is made. Through this open WebSocket connection, the client continously sends JSON messages to
+	the server.
+
+	First, the initial update of the text is sent to the server.
+	This inital update contains an example model, which also showcases for the user, how the language can be used
+	for defining a graph problem. 
+	
+	After this initialization, only differences (e.g.: deltaText) are sent to the backend, so that 
+	the edits made by the user can also be applied to the state on the backend session. 
+	After each user edit/modification, the
+	validity of the model is verified by the server: both semantically and syntactically, and sent back to the client.
+
+	If no action is made by the user, the connection between the client and the server
+	is kept alive via the use of the ping and pong messages of WebSocket.
+
+	If the user finished the creation of the graph model and the generate button is pressed 
+	on the client-side, a message containing the "modelGeneration" service request is sent to the server 
+	The server then proceeds to generate the model based on the user input.
+
+	This model generation may take a significant amount of time and many computing resources. 
+	If vast amount of users were to use 
+	the service at the same time, the increased generation times could lead to an unpleasing user experience and 
+	new user connections might also be very slow. 
+	
+	As a result it would be wise to restructure the Refinery infrastructure in a way, 
+	where the generation happens on a separate server,
+	acting like a microservice. This way, the load would be taken off from 
+	the basic backend of Refinery, and the newly created microservice would be the one responsible for
+	the creation of the model.
+	Our task is the creation of this generator microservice.
 
 \section{Requirements}
 Now that we have an idea, of what we have to perform to enhance the scalability of Refinery, we have to set some requirements for the
