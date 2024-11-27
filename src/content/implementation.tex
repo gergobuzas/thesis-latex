@@ -1,1 +1,101 @@
 \chapter{Implementation}
+
+	This chapter delves into the implementation of key components that form the backbone of communication with the generator microservice, 
+	which is responsible for handling model generation requests in Refinery's architecture.
+
+	First I'll introduce the starting point of the project.
+	Then I'll go into detail about how the backend creates a client, which communicates with the generator microservice. Finally I'll go into detail
+	regarding the inner workings of the generator server.
+
+	\section{Starting point}
+		First, I will introduce the starting point of the project, so we get an overview, of how the backend initially worked regarding the model
+		generations.
+
+		The PushServiceDispatcher is the class responsibly for calling the functions of the ModelGenerationService instance, and thus initiating
+		the generation related methods.
+
+		\subsection{ModelGenerationService}
+			The \textit{ModelGenerationService} is a core component of the application, designed to handle the initiation and management of
+			model generation tasks on the backend server. This class encapsulates the logic for coordinating the execution of these 
+			tasks, while providing a seamless interface for both initiating and canceling model generation processes.
+			It is a singleton class, so from a generator point of view, we might consider this class to be the real dispatcher.
+
+			The key features and responsibilities of the class include:
+			\begin{itemize}
+				\item{\textbf{Service Initialization:}} The \textit{ModelGenerationService} is a singleton, 
+				ensuring a single, consistent instance throughout the application's lifecycle.
+				It retrieves configuration parameters such as the model generation timeout 
+				from the environment, defaulting to 600 seconds if not explicitly set.
+				\item{\textbf{Model Generation Workflow:}} The main responsibility of the service is to execute model generation requests 
+				by instantiating workers (\textit{ModelGenerationWorker}), using multithreading. 
+				The workers perform the actual computational tasks:
+				\begin{enumerate}
+					\item The generateModel method is provided the PushWebDocumentAccess instance, which holds the model described by the partial modeling language
+					of Refinery.
+					\item A ModelGenerationWorker is instantiated and configured with the document state (provided by the PushWebDocumentAccess), 
+					a random seed and a timeout value.
+					\item The worker is started, as well as the resource heavy generation process. 
+					The worker is started on a background thread. 
+					The thread pool of for the generation workers can be configured via the 
+					\textit{REFINERY\_MODEL\_GENERATION\_THREAD\_COUNT} environment variable.
+				\end{enumerate}
+				\item{\textbf{Cancellation Mechanism:}}
+				During this process listed above, the service interacts with the document’s \textit{ModelGenerationManager} to monitor the worker's activity.
+				The timeout and cancellation is handled via the use of cancelation tokens.
+			\end{itemize}
+			The use of dependency injection for worker provisioning ensures that the service is decoupled from the specific implementation details of task execution, making it easier to extend or modify in the future.
+
+		\subsection{ModelGenerationWorker}
+			The \textit{ModelGenerationWorker} class is the backbone of the backend’s model generation process. 
+			It encapsulates the logic to handle the generation of computational models using a multithreaded approach, 
+			ensuring responsiveness and reliability during execution. 
+			Each instance of this class operates independently to process a specific model generation request.	
+
+			The key features of the class include thread-safe execution, error management, scalable design via the use of the ExecutorService
+			and the thread pool based multithreaded execution that it offers.
+
+			The main responsibilites of the class are:
+			\begin{itemize}
+				\item{\textbf{Task Management:}} Each worker is uniquely identified by a UUID, allowing precise tracking and management of tasks.
+				The worker implements the Runnable interface, enabling it to be executed as a separate thread in a thread pool.
+				\item{\textbf{State Configuration:}} The worker’s state is set before execution via the setState method. This method configures the input document (PushWebDocument), random seed, and timeout duration required for the model generation process.
+				The input text is extracted from the document and forms the basis of the model generation workflow.
+				\item{\textbf{Model Generation Execution:}} The run method drives the core workflow. It first initializes a timeout mechanism and notifies the system that model generation has begun.
+				The doRun method carries out the actual model generation, leveraging the following components:
+				\begin{itemize}
+					\item {\textbf{ProblemLoader:}} Parses the input text into a formal problem representation.
+					\item {\textbf{ModelGenerator:}} Creates a generator instance to process the problem and produce a solution.
+					\item {\textbf{MetadataCreator:}} Extracts metadata (nodes and relations) from the generated model for further processing.
+					\item {\textbf{PartialInterpretation2Json:}} Converts intermediate results into a JSON format for downstream tasks.
+				\end{itemize}
+				\item{\textbf{Result Notification:}} Once a model is successfully generated, or if an error occurs, the worker notifies the document's precomputation listeners with the result. This ensures that other system components are informed of the status of the generation process.
+				\item{\textbf{Cancellation Handling:}} The worker supports graceful cancellation through the cancel method. It uses a CancellationToken to periodically check whether the operation has been canceled and interrupts execution if necessary.
+				A timeout mechanism automatically cancels the task if it exceeds the configured duration, ensuring that no worker consumes resources indefinitely.
+			\end{itemize}
+
+			The ModelGenerationWorker is the enabler of backend-driven computation.
+			This implementation effectively delegates computationally intensive tasks, trying to minimize 
+			the burden on client communication.
+
+		\textbf{TODO!!! INSERT AN IMAGE OF AN UML DIAGRAM OF THE STARTING APPLICATION}
+
+	\section{Client of generation}
+			Now that the deployed implementation has been been described, we can restructure our application, so that the 
+			model generation is done via the generation microservice.
+
+			The design of the \textit{ModelGenerationService} emphasizes scalability and modularity:
+			By delegating the actual computation to workers (ModelGenerationWorker), the service separates orchestration from execution, 
+			allowing for greater flexibility and maintainability. This comes in handy, when implementing our client for communication with
+			the generator server.
+
+			The interaction between the GeneratorWebSocketEndpoint and the ModelRemoteGenerationWorker 
+			showcases how client-side operations and backend service orchestration are seamlessly integrated to ensure efficient, scalable, and reliable processing.
+			The 
+	\section{Generator Server}
+
+	\section{Containerization}
+
+	\section{Deploying on AWS}
+
+	\section{Challenges during the implementation}
+	Resource usage of development, Docker image deduplification, AWS ALB and NAT

@@ -275,4 +275,12 @@ another architecture should be looked at for the implementation.
 		Load Balancer-hour in the Stockholm region, where I am planning to deploy the application in the future. This application load balancer
 		will balance the traffic towards basic backend target groups, and also towards generator server instances.
 
-		\textbf{TODO!!!!!!!!! INSERT AN IMAGE OF THE Architectural PLAN!!!!!!!!!!!!!!}
+		Another key factor, is that Amazon has cheaper prices for EC2 instances with arm cpu architecture. It would be beneficial
+		to create a multi-architectural docker image, so that when we deploy our application, cheaper running costs can be 
+		achieved.
+
+		With this plan, using t3a.micro arm EC2 instances, we can expect a base hourly rate of: 2*\$0.0108 + \$0.02394 = \$0.04554
+
+		So approximately 4.6 cents per hour.
+
+		\textbf{TODO!!!!!!!!! INSERT AN IMAGE OF THE Architectural PLAN AND EQUATION!!!!!!!!!!!!!!}
