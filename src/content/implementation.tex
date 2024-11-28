@@ -83,14 +83,128 @@
 			Now that the deployed implementation has been been described, we can restructure our application, so that the 
 			model generation is done via the generation microservice.
 
-			The design of the \textit{ModelGenerationService} emphasizes scalability and modularity:
+			The design of the \textit{ModelGenerationService} is scalable and modular:
 			By delegating the actual computation to workers (ModelGenerationWorker), the service separates orchestration from execution, 
-			allowing for greater flexibility and maintainability. This comes in handy, when implementing our client for communication with
-			the generator server.
+			allowing for future modifications. 
+			
+			This comes in handy, when implementing our client for communication with
+			the generator server. We have to implement a client, which communicates generation requests towards the generator server,
+			and upon completion, receives such generation results.
 
-			The interaction between the GeneratorWebSocketEndpoint and the ModelRemoteGenerationWorker 
-			showcases how client-side operations and backend service orchestration are seamlessly integrated to ensure efficient, scalable, and reliable processing.
-			The 
+			\subsection{GeneratorWebSocketEndpoint}
+			The client-side component responsible for sending generation requests and handling responses is implemented as the GeneratorWebSocketEndpoint class,
+			leveraging Jetty's WebSocket API. This endpoint facilitates asynchronous communication with the generator microservice, 
+			ensuring efficient request management over WebSocket connections. 
+
+			In this section, I'll try to describe the key responsibilities and functionalities of the GeneratorWebSocketEndpoint class.
+			\subsubsection{WebSocket Configuration} 
+				The server, which the client is communicating with, can be configured.
+				\begin{itemize}
+					\item The WebSocket URI is dynamically determined based on environment variables (\textit{REFINERY\_GENERATOR\_WS\_HOST} 
+					and \textit{REFINERY\_GENERATOR\_WS\_PORT}). If these are unset, default values (localhost and 1314) are used to ensure flexibility during deployment.
+					\item The constructor initializes a WebSocketClient instance and sets default values, such as the worker's UUID and timeout duration.
+				\end{itemize} 
+			\subsubsection{Communication towards the server} 
+				\begin{itemize}
+					\item The client connects to the server via a ClientUpgradeRequest. The connection includes a custom header for the UUID of the worker.
+					\item Sending the generation requests via sendGenerationRequest method. The method sends a structured JSON payload containing the request type,
+					the UUID, the problem description, and a random seed. This start the model generation process on the server
+					\item Sending generation cancel requests via the sendCancelRequest method. This client sends a JSON, with the UUID of the generation to be 
+					executed. Each generation opens a new session, with a new UUID for the server, so they can be uniquely idenfitied.
+				\end{itemize} 
+			\subsubsection{Receiving from the server} 
+				Responses from the server are handled by the onText method, which processes various types of messages 
+				(result, error, nodesMetadata, relationsMetadata, partialInterpretation), parsing them into appropriate data 
+				structures and queuing them for consumption in their appropiate result queues.
+
+			\subsubsection{Parsing responses from the queue} 
+				The client maintains several LinkedBlockingQueue instances to manage received data:
+				\begin{itemize}
+					\item responseQueue: Stores results or errors associated with the generation process.
+					\item nodesMetaDataQueue: Holds metadata about nodes in the generated model.
+					\item relationsMetadataQueue: Queues relation metadata details.
+					\item partialInterpretationQueue: Handles intermediate model interpretation data.
+				\end{itemize} 
+				The queues are accessed with timeout constraints to prevent indefinite blocking during retrieval. The timeout is set up by the class'
+				timeout variable. 
+				
+				The LinkedBlockingQueue allowed the Jetty API's @WebSocketText annotated onText method, to put the received generation
+				results into the queue, while the client is waiting for the results to arrive from the server. As soon as an element is put into the queue
+				it can be popped from it. This way our code is safely waiting for the results
+				to arrive from the server and no concurrency issues can arise. As I have already mentioned, each generation request instantiates a new
+				client, so the size of these queues can only be between 0 and 1. No other generation client is accessing these queues of the instances.
+
+			\subsubsection{Error Handling and Resource Management}
+				\begin{itemize}
+					\item The WebSocket lifecycle events (onOpen, onClose, onError) are implemented to handle connection state changes gracefully.
+					\item Proper resource cleanup is ensured through the close method, which terminates the WebSocket session and stops the client instance.
+					In normal operation, the client is the one initiating the closing of the connection.
+					\item Errors during critical operations, such as connection establishment or closure, are logged and propagated as exceptions.
+				\end{itemize} 
+
+			\subsubsection{Scalability and Extensibility} 
+				The GeneratorWebSocketEndpoint class is designed to support scalability.
+				\begin{itemize}
+					\item The GeneratorWebSocketEndpoint class is designed to support scalability.
+					\item Its queuing mechanism ensures thread-safe handling of concurrent operations.
+					\item The dynamic configuration allows seamless deployment in different environments without hardcoding server details.
+					\item The modular structure facilitates extending the client to handle additional message types or features in the future.
+				\end{itemize} 
+
+			This implementation forms the core communication layer between the client and the generator microservice, enabling efficient 
+			request handling, response parsing, and error management in a scalable and extensible manner.
+
+
+		\subsection{ModelRemoteGenerationWorker}
+			\subsubsection{Core functionality}
+				The ModelRemoteGenerationWorker manages remote model generation tasks by leveraging a WebSocket client (GeneratorWebSocketEndpoint). 
+				It sends model generation requests to a remote service, handles server responses, and retrieves metadata and interpretations required 
+				for completing the generation process.
+				By offloading the generation task to a remote service, this class allows the backend to handle computationally expensive operations 
+				efficiently without overloading local resources. It preserves core mechanisms, such as timeout handling, task cancellation, 
+				and error reporting, ensuring a robust and reliable workflow.
+
+			\subsubsection{IGenerationWorker}
+				For implementation, the IGenerationWorker interface was created, which defines a unified API for all generation workers. 
+				This interface standardizes the core operations, including task initialization, execution, timeout management, and cancellation.
+				This abstraction ensures that the backend can switch between local and remote workers without altering its core functionality.
+
+				The key methods from the interface include:
+				\begin{itemize}
+					\item setState: Configures the worker with the input document, random seed, and timeout settings.
+					\item start and startTimeout: Enqueues the worker for execution and schedules a timeout to enforce task completion within a defined duration.
+					\item doRun: Executes the remote model generation logic by communicating with the external service.
+					\item cancel: Cancels the task, ensuring both local and remote operations are halted gracefully.
+				\end{itemize}
+
+				The interface is a reusable API, which both the old ModelGenerationWorker, and our newly created ModelRemoteGenerationWorker implement.
+				The implementation of this interface grants us plug-and-play functionality. The usage of the new generator microservice is interchangable
+				with the old implementation. The backend can use either worker, based on the initial configuration, which can be set by an environment
+				variable.
+				The interface also allows for future workers to be implemented or a future hybrid functionality.
+
+			\subsubsection{Workflow}
+				The execution process of ModelRemoteGenerationWorker begins with setup and state configuration. 
+
+				During task execution, the worker sends a generation request to the remote service by using a WebSocket client instance (GeneratorWebSocketEndpoint). 
+				The server's responses are processed incrementally.
+
+				The task completes successfully upon retrieving all necessary results, or it is terminated on errors, cancellation, or timeout.
+
+				Timeouts and cancellations are managed via a ScheduledExecutorService, ensuring that the system remains responsive and resources are freed promptly. In case of errors, the worker captures exceptions, logs the issues, and notifies the backend with appropriate error results.
+
+				The interaction between the GeneratorWebSocketEndpoint and the ModelRemoteGenerationWorker 
+				showcases how client-side operations and backend service orchestration are seamlessly integrated to ensure efficient, scalable, and reliable processing.
+				The 
+
+			\subsubsection{Impact}
+				By integrating remote model generation, this implementation reduces the computational load on the backend server, 
+				making the system more scalable. The use of the IGenerationWorker interface allows a modular design, enabling seamless 
+				transition between local and remote workers or future extensions. 
+				
+				Furthermore, this approach demonstrates how backend systems can leverage external services without significant architectural changes, 
+				ensuring flexibility and scalability in modern distributed systems.
+
 	\section{Generator Server}
 
 	\section{Containerization}
