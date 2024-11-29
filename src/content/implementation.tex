@@ -79,7 +79,7 @@
 
 		\textbf{TODO!!! INSERT AN IMAGE OF AN UML DIAGRAM OF THE STARTING APPLICATION}
 
-	\section{Client of generation}
+	\section{Generator Client}
 			Now that the deployed implementation has been been described, we can restructure our application, so that the 
 			model generation is done via the generation microservice.
 
@@ -206,10 +206,118 @@
 				ensuring flexibility and scalability in modern distributed systems.
 
 	\section{Generator Server}
+		Now that the client side of the generation process has been introduced, the server side implementation is what should be described next.
+		The main idea behind this implementation, was to take the experiences of the local model generation worker, and basically implement everything that 
+		is necessary for a generation to happen, in a multithreaded way, on our microservice. It is basically the implementation of the ModelGenerationWorker
+		on a separate server.
+
+		\subsection{GeneratorServerEndpoint}
+			The GeneratorServerEndpoint is a WebSocket server endpoint that facilitates communication between remote clients 
+			and the backend for model generation requests. This class plays a crucial role in enabling real-time, 
+			bidirectional communication, supporting features like generation request handling, cancellation, and client disconnection.
+
+			\subsubsection{Core Functionality}
+				The two most important functionalities of the class are the handling of the generation requests and cancelation requests, which are
+				 received over the 
+				WebSocket sessions. 
+				
+				When a message of type "generationRequest" is received, the endpoint extracts generation details 
+				such as the unique identifier (uuid), random seed, and problem description. The data is sent by the client via JSON, so extracting the
+				needed key-value pairs is pretty straighforward. These are then forwarded to the ModelGeneratorDispatcher, 
+				which manages the actual model generation task.
+
+				For "cancel" messages, the endpoint instructs the ModelGeneratorDispatcher to cancel an ongoing generation task associated with the provided uuid.
+
+				Any errors during the WebSocket communication are captured, logged.
+
+				When a WebSocket session is closed, the endpoint notifies the ModelGeneratorDispatcher to clean up resources associated with the disconnected client.
+
+			\subsubsection{Integration into the workflow}
+				The GeneratorServerEndpoint serves as the entry point for remote clients into the backend's model generation system. 
+				It relies on the ModelGeneratorDispatcher to manage generation and cancellation tasks. This provides a clean separation of concerns. 
+				The design ensures that the endpoint focuses solely on communication, while the dispatcher handles the generation tasks.
+
+			\subsubsection{Scalability and Extensibility}
+				This WebSocket-based implementation allows the backend to support multiple concurrent client connections efficiently. 
+				By using asynchronous communication, it ensures that tasks are queued and processed without blocking the ongoing generations. 
+				The modular design makes it easy to extend functionality, such as adding new message types or enhancing error handling mechanisms.
+
+
+		\subsection{ModelGeneratorDispatcher}
+			The ModelGeneratorDispatcher is a singleton class designed to manage and execute model generation requests on separate threads. 
+			Its primary role is to coordinate the model generation tasks, making sure that they run concurrently and their status updates and results are 
+			communicated back to clients over open WebSocket sessions. This dispatcher simplifies the handling of multiple requests 
+			and helps with maintaining system consistency.
+
+			\subsubsection{Key features}
+			The class implements the singleton design pattern to guarantee that only one instance of ModelGeneratorDispatcher exists throughout the application. 
+			This is achieved via the use of a private constructor which prevents instantiation of the class from the outside, ensuring 
+			that all interactions go through the singleton instance.
+			This provides centralized control and avoids conflicting task management.
+
+
+			Each model generation request is executed in a separate thread to prevent blocking the main application flow. 
+			This is achieved through the ModelGeneratorExecutor class, which handles the task logic.
+			The running model generations (ModelGenerationExecutor) are stored in a hashmap. The threads are identified by the UUID of the 
+			generation (key).
+
+			New generation requests are created, initialized and started on separate threads. They are then added to the previously mentioned hashmap.
+
+			Ongoing tasks can be cancelled via the UUID of the generation. As the hashmap stores these generation tasks identified by their UUID, it is fairly easy to do.
+
+			Once a client has disconnected, the belonging task is cancelled, if not finished yet. The said task is removed from the hashmap. The UUID identification is 
+			useful here aswell.
+
+			The main methods of the class are:
+			\begin{itemize}
+				\item \textbf{getInstance:} Provides global access to the singleton instance of the dispatcher. Ensures thread-safe initialization using synchronized access.
+				\item \textbf{addGenerationRequest:} First, dependencies are injected and a new ModelGeneratorExecutor is created for the request.
+				Then the executor is initialized with task-specific details such as the random seed, problem string, and the WebSocket session with the client.
+				Last, the executor thread is started and gets stored in the threadPool hashmap.
+				\item \textbf{cancelGenerationRequest:} Retrieves the executor from the hashmap, based on the parameter UUID. Then the executor is signaled to
+				cancel its operation.
+				\item \textbf{disconnect:} Removes the executor from the threadPool and calls its disconnect method to release resources safely.
+			\end{itemize}
+
+		\subsection{ModelGeneratorExecutor}
+		The ModelGeneratorExecutor is a class responsible for performing the actual model generation tasks. It runs on a separate thread, 
+		making it suitable for concurrent processing. This class does pretty much what the original ModelGenerationWorker did. 
+		It even operates as part of a dispatcher system, executing generation tasks handed over by the ModelGeneratorDispatcher.
+
+		\subsubsection{Key features and responsibilities}
+			The main responsibilites of the class are the following:
+			\begin{itemize}
+				\item \textbf{Initialization:} Before starting, it initializes the problem by loading the problem description, random seed, and WebSocket session details. These were
+				received by the GeneratorServerEndpoint over WebSocket, and are given to an executor object by the ModelGeneratorDispatcher.
+				\item \textbf{Task Execution (in run()):} The class handles the execution of the model generation. This is done in the exact same way, as it was done previously at the local ModelGenerationWorker.
+				\item \textbf{Client communication:} By getting an open WebSocket session, the class instance can send generation state results, metadata and errors to the clients.
+				\item \textbf{Cancellation support:} The task can be interrupted or canceled at any point, ensuring that unnecessary processing is avoided. This is especially useful for timeout scenarios or user-initiated cancellations.
+			\end{itemize}
+			The key features of the class are:
+			\begin{itemize}
+				\item \textbf{Decoupled Execution:} Each ModelGeneratorExecutor instance works independently, processing a single request and reporting its status without interference from other tasks.
+				\item \textbf{Feedback to the clients:} Task status updates are sent back to the dispatcher via the WebSocket session, ensuring real-time communication with clients.
+				\item \textbf{Error Handling:} Any issues during validation or model generation are gracefully handled, with appropriate error messages sent to clients.
+			\end{itemize}
+
+		\subsection{ServerLauncher}
+		The ServerLauncher class serves as the entry point for starting a WebSocket server that 
+		processes model generation requests. It listens on a configurable port, defaulting to 1314 
+		unless overridden by the \textit{REFINERY\_GENERATOR\_WS\_PORT} environment variable. 
+		
+		The class sets up a Jetty server, configures a ServletContextHandler for managing requests and sessions, 
+		and integrates WebSocket support through JettyWebSocketServletContainerInitializer.
+
+		The GeneratorServerInitServlet servlet is registered for handling WebSocket communication.
+		This basically just registers the GeneratorServerEndpoint.
+		Once everything is configured, the server is started to handle incoming requests. 
+		This class essentially establishes the server infrastructure for the application.
+
+		\textbf{TODO!!!! A NICE IMAGE ABOUT THE GENERATOR SERVER ARCHITECTURE}
 
 	\section{Containerization}
 
 	\section{Deploying on AWS}
 
 	\section{Challenges during the implementation}
-	Resource usage of development, Docker image deduplification, AWS ALB and NAT
+	Resource usage of development, Docker image deduplification, HealthCheck for ALB, AWS ALB and NAT
