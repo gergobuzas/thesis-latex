@@ -316,6 +316,59 @@
 		\textbf{TODO!!!! A NICE IMAGE ABOUT THE GENERATOR SERVER ARCHITECTURE}
 
 	\section{Containerization}
+		Now that our application was running succesfully, with both the basic backend and the generator server working together in this distributed architecture. 
+		The new generator microservice was added 
+		to the "run" task of the backend gradle project, and as such, the workings of the application could be tested locally. 
+		
+		Containerization was the next step in 
+		updating our application. Containers help with the distribution and deployment of an application, so it was logical to handle this task as the next challenge.
+		For the creation of the docker images some shell scripts were created. In this section, I will describe how those scripts handle the process.
+
+		Keep in mind, that even before the restructuring, the build pipeline already existed. My main task was integrating the generator server docker image creation
+		into these available scripts of the pipeline. I modified the prepare\_context.sh and the docker-bake.hcl files, and created a new file for the generator server
+		image creation called Dockerfile.generator.
+
+		\subsection{Preparation scripts}
+			The build.sh is the entrypoint to the building pipeline. First it calls a gradle build process, which builds all of our distributed projects 
+			(like the basic backend
+			and the newly created generator server projects), and returns us TAR archives of the projects' compiled dependencies and used classes.
+			Then the prepare\_context.sh and bake.sh scripts are called.
+
+			The prepare\_context.sh script organizes and optimizes build artifacts for Docker containerization. 
+			It extracts the distribution archives, dissecting them into different distributed projects (like the backend and the generator), cleans up existing artifacts, 
+			and separates application-specific JARs from shared dependencies. As a result common dependencies are deduplicated, and placed inside a common libs directory. 
+			CPU architecture-specific JARs are placed in separate directories for AMD64 and ARM64 architectures. 
+			This helps the container supports multi-architecture builds.
+			Finally, all files are organized into a context directory for Docker image creation. The temporary distribution folders are removed.
+
+			The bake.sh script builds and optionally pushes Docker images for the Refinery project using Docker Buildx and a docker-bake.hcl file. 
+			It works in conjunction with a multi-stage Docker build process that is optimized for multiple architectures (x86\_64 and ARM64).
+
+			The bake.sh script begins by retrieving the project version using get\_version.sh, which is exported as the REFINERY\_VERSION environment variable. 
+			It also sets the REFINERY\_PUSH variable to false by default, allowing the user to control whether images are pushed to a container registry. 
+			Then the script runs the docker buildx bake command with the docker-bake.hcl configuration file, 
+			passing any additional arguments.
+
+
+		\subsection{Docker images}
+			The docker-bake.hcl specifies a group of targets (like the backend and the generator) and individual build configurations for each target. 
+
+			The targets share a common base image defined in Dockerfile.base, which includes a slimmed-down JRE. 
+			Architecture-specific dependencies are added as separate layers for AMD64 and ARM64, allowing efficient multi-architecture builds. 
+			The targets specify platform compatibility, output configurations (including image naming and optional pushing), 
+			and build contexts, referencing the base image.
+
+			The Dockerfile.generator builds the generator image in stages, layering application-specific dependencies, startup scripts, 
+			and JAR files on top of the base image defined in Dockerfile.base. It's implementation was heavily inspired by the Dockerfile.web backend image. 
+			For the container, architecture-specific startup scripts and application binaries are added, 
+			followed by application JARs. The final image is configured with environment variables (like the host and port for the server),
+			a working directory, exposed ports for listening and an entry point to run the refinery-generator-server application.
+
+
+		TODO!!!!! IMAGE OF THE BUILD PIPELINE: Start->build.sh->gradle->preparecontext->docker bake
+		
+
+
 
 	\section{Deploying on AWS}
 
