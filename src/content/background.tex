@@ -170,93 +170,11 @@
 		\caption{WebSocket connection}
 	\end{figure}
 
-	\subsection{Connection lifecycle}
-		The lifecycle of a WebSocket communication between a client and a server is as follows:
-		\begin{enumerate}
-			\item \textbf{The WebSocket communication starts with an upgrade HTTP request from the client to the server.}
-			
-			In the request's header the upgrade is set to be the WebSocket protocol, so that the server knows, that client wants to establish a WebSocket connection.
-			The security version of the WebSocket protocol and a base64 encoded key (Sec-WebSocket-Key) are sent in this upgrade request. 
-			\begin{figure}[h!]
-				\begin{lstlisting}[language=bash]
-				GET /xtext-service HTTP/1.1
-				Host: refinery.services
-				User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0
-				Accept: */*
-				Accept-Language: en-US,en;q=0.5
-				Accept-Encoding: gzip, deflate, br, zstd
-				Sec-WebSocket-Version: 13
-				Origin: https://refinery.services
-				Sec-WebSocket-Protocol: tools.refinery.language.web.xtext.v1
-				Sec-WebSocket-Extensions: permessage-deflate
-				Sec-WebSocket-Key: e6U+LNmInDXCSoVI7FswTQ==
-				Connection: keep-alive, Upgrade
-				Sec-Fetch-Dest: empty
-				Sec-Fetch-Mode: websocket
-				Sec-Fetch-Site: same-origin
-				Pragma: no-cache
-				Cache-Control: no-cache
-				\end{lstlisting}
-				\caption{Example WebSocket upgrade request}
-			\end{figure}
+	After the initial WebSocket handshake, the communication protocol is upgraded to WebSocket from HTTP.
+	If no communicaiton is happening, the connection is kept alive between the two communicating endpoints via the use of ping and pong messages.
+	If a ping sender endpoint doesn't receive a pong response, the connection is lost, and the endpoints are disconnected.
+	Other than that, the protocol allows for full bidirectional real-time messaging to the endpoints.
 
-			\item  \textbf{The server responds to the upgrade request.}
-
-			The server acknowledges the upgrade by the client, and sends back the Sec-WebSocket-Accept.
-			\begin{figure}[h!]
-				\begin{lstlisting}[language=bash]
-				HTTP/1.1 101 Switching Protocols
-				Date: Mon, 11 Nov 2024 19:02:27 GMT
-				Connection: upgrade
-				Server: Jetty(12.0.14)
-				Cache-Control: no-cache, no-store, max-age: 0, must-revalidate
-				Expires: Thu, 01 Jan 1970 00:00:00 GMT
-				Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' data:; manifest-src 'self'; worker-src 'self' blob:;
-				X-Content-Type-Options: nosniff
-				X-Frame-Options: DENY
-				Referrer-Policy: strict-origin
-				Cross-Origin-Opener-Policy: same-origin
-				Cross-Origin-Embedder-Policy: require-corp
-				Cross-Origin-Resource-Policy: cross-origin
-				Sec-WebSocket-Protocol: tools.refinery.language.web.xtext.v1
-				Sec-WebSocket-Extensions: permessage-deflate
-				Upgrade: websocket
-				\end{lstlisting}
-				\caption{Example WebSocket upgrade response (handshake)}
-			\end{figure}
-
-			\item \textbf{Communication between server and client}
-
-			The communication is handled between the two connected endpoints via WebSocket frames. I will go into detail of the frames in section 2.10.2.
-
-			\item \textbf{Either the server or the client initiates disconnect via a connection close frame}
-		\end{enumerate}
-
-	\subsection{WebSocket frames}
-		WebSocket frames are the barebones of the communication between two connected endpoints. If the message we are trying to send is too big it is fragmented
-		into multiple frames.
-		A WebSocket frame consists of the following:
-		\begin{itemize}
-			\item FIN (1 bit): Indicates that it is a final fragment in a message
-			\item RSV1-3 (3bits): Reserved bits
-			\item Opcode (4bits): Indicates the message type. According to the RFC specification, the values indicate:
-			\begin{itemize}
-				\item 0x0 denotes a continuation frame
-      			\item 0x1 denotes a text frame
-				\item 0x2 denotes a binary frame
-				\item 0x3-0x7 are reserved for further non-control frames
-				\item 0x8 denotes a connection close
-				\item 0x9 denotes a ping
-				\item 0xA denotes a pong
-				\item 0xB-F are reserved for further control frames
-			\end{itemize}	
-			\item Mask (1 bit): Indicates whether the payload data is masked by the masking key
-			\item Payload length (7bits, 7+16bits or 7+64bits): The lenght of the payload
-			\item Payload data 
-		\end{itemize}
-		The ping and pong frames are used for keeping the connection alive, if no communication is happening
-		 between the endpoints otherwise. This can be considered as the "keep-alive" function of the protocol. If no pong answer is sent to the
-		ping request, the connection is closed.
 		
 
 \section{Shell}
