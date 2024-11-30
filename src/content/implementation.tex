@@ -1,4 +1,4 @@
-\chapter{Implementation}
+\chapter{Implementation} \label{Implementation}
 
 	This chapter delves into the implementation of key components that form the backbone of communication with the generator microservice, 
 	which is responsible for handling model generation requests in Refinery's architecture.
@@ -7,14 +7,14 @@
 	Then I'll go into detail about how the backend creates a client, which communicates with the generator microservice. Finally I'll go into detail
 	regarding the inner workings of the generator server.
 
-	\section{Starting point}
+	\section{Starting point} \label{Starting point}
 		First, I will introduce the starting point of the project, so we get an overview, of how the backend initially worked regarding the model
 		generations.
 
 		The PushServiceDispatcher is the class responsibly for calling the functions of the ModelGenerationService instance, and thus initiating
 		the generation related methods.
 
-		\subsection{ModelGenerationService}
+		\subsection{ModelGenerationService} \label{ModelGenerationService}
 			The \textit{ModelGenerationService} is a core component of the application, designed to handle the initiation and management of
 			model generation tasks on the backend server. This class encapsulates the logic for coordinating the execution of these 
 			tasks, while providing a seamless interface for both initiating and canceling model generation processes.
@@ -205,18 +205,18 @@
 				Furthermore, this approach demonstrates how backend systems can leverage external services without significant architectural changes, 
 				ensuring flexibility and scalability in modern distributed systems.
 
-	\section{Generator Server}
+	\section{Generator Server} \label{Generator Server}
 		Now that the client side of the generation process has been introduced, the server side implementation is what should be described next.
 		The main idea behind this implementation, was to take the experiences of the local model generation worker, and basically implement everything that 
 		is necessary for a generation to happen, in a multithreaded way, on our microservice. It is basically the implementation of the ModelGenerationWorker
 		on a separate server.
 
-		\subsection{GeneratorServerEndpoint}
+		\subsection{GeneratorServerEndpoint} \label{GeneratorServerEndpoint}
 			The GeneratorServerEndpoint is a WebSocket server endpoint that facilitates communication between remote clients 
 			and the backend for model generation requests. This class plays a crucial role in enabling real-time, 
 			bidirectional communication, supporting features like generation request handling, cancellation, and client disconnection.
 
-			\subsubsection{Core Functionality}
+			\subsubsection{Core Functionality} \label{Core Functionality}
 				The two most important functionalities of the class are the handling of the generation requests and cancelation requests, which are
 				 received over the 
 				WebSocket sessions. 
@@ -232,24 +232,24 @@
 
 				When a WebSocket session is closed, the endpoint notifies the ModelGeneratorDispatcher to clean up resources associated with the disconnected client.
 
-			\subsubsection{Integration into the workflow}
+			\subsubsection{Integration into the workflow} \label{Integration into the workflow}
 				The GeneratorServerEndpoint serves as the entry point for remote clients into the backend's model generation system. 
 				It relies on the ModelGeneratorDispatcher to manage generation and cancellation tasks. This provides a clean separation of concerns. 
 				The design ensures that the endpoint focuses solely on communication, while the dispatcher handles the generation tasks.
 
-			\subsubsection{Scalability and Extensibility}
+			\subsubsection{Scalability and Extensibility} \label{Scalability and Extensibility}
 				This WebSocket-based implementation allows the backend to support multiple concurrent client connections efficiently. 
 				By using asynchronous communication, it ensures that tasks are queued and processed without blocking the ongoing generations. 
 				The modular design makes it easy to extend functionality, such as adding new message types or enhancing error handling mechanisms.
 
 
-		\subsection{ModelGeneratorDispatcher}
+		\subsection{ModelGeneratorDispatcher} \label{ModelGeneratorDispatcher}
 			The ModelGeneratorDispatcher is a singleton class designed to manage and execute model generation requests on separate threads. 
 			Its primary role is to coordinate the model generation tasks, making sure that they run concurrently and their status updates and results are 
 			communicated back to clients over open WebSocket sessions. This dispatcher simplifies the handling of multiple requests 
 			and helps with maintaining system consistency.
 
-			\subsubsection{Key features}
+			\subsubsection{Key features} \label{Key features}
 			The class implements the singleton design pattern to guarantee that only one instance of ModelGeneratorDispatcher exists throughout the application. 
 			This is achieved via the use of a private constructor which prevents instantiation of the class from the outside, ensuring 
 			that all interactions go through the singleton instance.
@@ -279,12 +279,12 @@
 				\item \textbf{disconnect:} Removes the executor from the threadPool and calls its disconnect method to release resources safely.
 			\end{itemize}
 
-		\subsection{ModelGeneratorExecutor}
+		\subsection{ModelGeneratorExecutor}\label{ModelGenerationExecutor}
 		The ModelGeneratorExecutor is a class responsible for performing the actual model generation tasks. It runs on a separate thread, 
 		making it suitable for concurrent processing. This class does pretty much what the original ModelGenerationWorker did. 
 		It even operates as part of a dispatcher system, executing generation tasks handed over by the ModelGeneratorDispatcher.
 
-		\subsubsection{Key features and responsibilities}
+		\subsubsection{Key features and responsibilities}\label{Key features and responsibilites}
 			The main responsibilites of the class are the following:
 			\begin{itemize}
 				\item \textbf{Initialization:} Before starting, it initializes the problem by loading the problem description, random seed, and WebSocket session details. These were
@@ -300,7 +300,7 @@
 				\item \textbf{Error Handling:} Any issues during validation or model generation are gracefully handled, with appropriate error messages sent to clients.
 			\end{itemize}
 
-		\subsection{ServerLauncher}
+		\subsection{ServerLauncher}\label{Serverlauncher}
 		The ServerLauncher class serves as the entry point for starting a WebSocket server that 
 		processes model generation requests. It listens on a configurable port, defaulting to 1314 
 		unless overridden by the \textit{REFINERY\_GENERATOR\_WS\_PORT} environment variable. 
@@ -315,8 +315,9 @@
 
 		\textbf{TODO!!!! A NICE IMAGE ABOUT THE GENERATOR SERVER ARCHITECTURE}
 
-	\section{Containerization}
-		Now that our application was running succesfully, with both the basic backend and the generator server working together in this distributed architecture. 
+	\section{Containerization}\label{Containerization}
+		Now that our application was running succesfully, with both the basic backend and the generator server working together in this 
+		distributed architecture, came the containerization. 
 		The new generator microservice was added 
 		to the "run" task of the backend gradle project, and as such, the workings of the application could be tested locally. 
 		
@@ -328,7 +329,7 @@
 		into these available scripts of the pipeline. I modified the prepare\_context.sh and the docker-bake.hcl files, and created a new file for the generator server
 		image creation called Dockerfile.generator.
 
-		\subsection{Preparation scripts}
+		\subsection{Preparation scripts}\label{Preparation scripts}
 			The build.sh is the entrypoint to the building pipeline. First it calls a gradle build process, which builds all of our distributed projects 
 			(like the basic backend
 			and the newly created generator server projects), and returns us TAR archives of the projects' compiled dependencies and used classes.
@@ -350,7 +351,7 @@
 			passing any additional arguments.
 
 
-		\subsection{Docker images}
+		\subsection{Docker images}\label{Docker images}
 			The docker-bake.hcl specifies a group of targets (like the backend and the generator) and individual build configurations for each target. 
 
 			The targets share a common base image defined in Dockerfile.base, which includes a slimmed-down JRE. 
@@ -364,13 +365,106 @@
 			followed by application JARs. The final image is configured with environment variables (like the host and port for the server),
 			a working directory, exposed ports for listening and an entry point to run the refinery-generator-server application.
 
+			The finished images were pushed to the Docker Hub registry for my account. The public repository containing the images (backend,
+			generator) can be accessible by anyone, and came in handy for the AWS deployment.
 
 		TODO!!!!! IMAGE OF THE BUILD PIPELINE: Start->build.sh->gradle->preparecontext->docker bake
-		
-
-
 
 	\section{Deploying on AWS}
+		As the docker images, desribed in section \ref{Docker images} were pushed to the remote Docker Hub registry, it was ready to be deployed on the AWS infrastructure, the 
+		same way it was planned in section \ref{awsdecision}.
 
-	\section{Challenges during the implementation}
-	Resource usage of development, Docker image deduplification, HealthCheck for ALB, AWS ALB and NAT
+		I didn't want to deploy my project on the production AWS account, as asking for a user account with the appropriate access rights for the
+		infrastructure might be a problem. Furthermore, it might pose a security risk to the production environment and even possible downtimes, if I
+		were to make some mistakes during the setup of my environment.
+
+		I registered a new AWS account with my own private email address. Luckily, Amazon provides a free-tier account for starters, where 
+		I could deploy my application with virtually no associated costs. I used the AWS Management Console, which is the web GUI for 
+		managing our AWS infrastructure.
+
+		\subsection{Task definitions}
+			First I set my tasks up. The tasks are basically the container instances of an application within the AWS ECS environment. 
+			I created a task
+			for the generator microservice called refinery-generator and the backend server called refinery-language-web.
+			In the task configuration, I set the tasks to run on EC2 instances, provided the belonging docker registry link for the service,
+			assigned the port mappings for the appropiate listening ports, and set the environment variables, 
+			such as the generatos host and port's. The refinery-language-web task definition needed the "REFINERY\_GENERATOR\_WS\_HOST" to 
+			be equal to the load balancer of the generator microservice's load balancer (more on that later, in section \ref{ALB NAT}).
+			I set the networking mode for both tasks to be awsvpc, as they would be deployed on the same Virtual Private Cloud.
+			Health checks also had to be implemented, so that our service knows, that the application is running and is in a stable state.
+			For health checks, I used basic curl requests to the host and ports of the services. This caused some headaches in the 
+			generator microservice deployment (\ref{healthcheck}).
+
+		\subsection{Service definitions}
+			Then I created a refinery cluster, with services running the defined tasks. The services are within an EC2 auto scaling group. 
+			This allows us to scale our container instances, if they are heavily used, and the resource usage is over a threshold.
+			For this I set up two treshholds:
+			\begin{itemize}
+				\item CPU usage: If the average CPU usage is over 70\% for more than 300 seconds, a new instance is deployed.
+				\item Memory usage: If the average RAM usage is over 70\% for more than 300 seconds, a new instance is deployed.
+			\end{itemize}
+			I used Amazon's t3.micro EC2 instances for the auto scaling group, which are eligible for the free tier accounts. 
+			They each have 2 vCPUs with 4 threads and 1GB of RAM.
+		
+		\subsection{Load Balancer definition}
+			An application load balancer (ALB) was created for the 
+			backend and the generator server. The ALB would forward traffic to the running container instances within a target group, as longs as their
+			health checks pass. 
+			The ALB would be reachable for anyone on the internet on port 80. This port forwards traffic to the target group of the backend of the application.
+			On port 81, the forwarding of the generator microservice requests is done towards the generator target group. However, this port is configured
+			to accept requests only within the security group of the application. As such, only the backend can send requests to the microservice, hiding it 
+			away from the public internet.
+			I set the load balancing algorithm to the default round-robin, but least-used can also be a viable option.
+
+	\section{Challenges during the implementation} \label{challenges}
+	\subsection{Resource usage of development}
+		The very first challenge that came up during the implementation was how heavy the resource usage of the project was.
+		I wanted to develop on the Linux operating system, via the use of Windows Subsystem for Linux (WSL). I wanted to use linux
+		because I could already see, that the most scripts for building had the extension "sh", which indicates a UNIX shell script.
+		Windows (PowerShell or CMD) does not support those by default, hence why WSL was needed.
+
+		When I initially opened the Refinery gradle project via a remote connection to my WSL, I was given an unwelcome suprise. The resource usage 
+		for the gradle project indexing was incredible. My 8-core Ryzen 7 CPU was sitting at around 70\%  usage, alongside 
+		16 gigabytes of my system memory being 92-99\% occupied. 
+		
+		The initial indexing of the Gradle project took around 45-60 minutes. During that time, the computer was pretty much unusable, as all of the resources
+		were allocated for the gradle indexing task. However, to my surprise, even upon completion the resource usages didn't improve. The same amount of RAM
+		was used by the WSL and there was no sign of it freeing up. 
+
+		TODO insert image of CPU usage
+
+		As a result of this, I have given up the development using WSL. I developed the application on Windows, while using WSL only for the
+		dockerization (\ref{Containerization}) of the finished applications.
+
+	\subsection{Deduplification for docker images}
+		The initial context preparation in section \ref{Preparation scripts} was implemented for two different distributions (the basic backend 
+		named web, and a generator cli called cli). The common\_libs creation for both of these distributed images was very straightforward
+		as the two distributions only had limited amount of JARs that they both used.
+
+		With my project, a new distribution for the generator server was created. Originally I wanted to implement the deduplification in a way,
+		where if two of the three distributions contained a JAR, the JAR would be put in the common\_libs folder.
+		However, this implementation didn't seem too useful. In this case all of the resources needed for the web distribution were added to the common folder.
+		As such, the shell script would have been needed to be modified, so that it could handle empty dist folders during the pipeline. On the other hand
+		the files of the common library would be put in the base docker image, even tho it might not be needed for the running of our application.
+
+		I decided to add only those resources to the common library, which are used in all of the created docker images. 
+		As a result, the base image is not bloated and the shell script didn't need many modifications.
+
+	\subsection{Health check for the generator server} \label{healthcheck}
+		When deploying an application with the use of an Application Load Balancer, a target group of the tasks has to be specified.
+		The load balancer needs to keep track of the running task docker container instances, so that it can decide, whether requests can be 
+		forwarded to the running microservice. A health check has to be put in use, so that the load balancer can register the running instances.
+
+		In my implementation of the generator server at section \ref{GeneratorServerEndpoint}, I only created a WebSocket server. However, Jetty 
+		WebSocket servers won't respond to regular HTTP requests. With this original implementation, the health check for the load balancer would
+		not work: it always signaled that the task was not running, as it wouldn't respond to the curl http requests towards the default path (/).
+
+		As a workaround, I created a servlet called HealthCheckServlet, which responds to HTTP get requests at the path "/healthcheck",
+		by returning a "Server works!" plain text.
+
+		I added the servlet to the ServletContextHandler of the ServerLauncher class. By this, the load balancer can ensure the healthy state of the 
+		the server instances, by sending a curl request to the "/healthcheck" path of the generator server.
+
+	\subsection{Application Load Balancer and NAT} \label{ALB NAT}
+		TODO Write about the initial problem. VPC ACLs, Sg tries, IAM, SSH into the EC2, copying amd64 compiled static curl to docker container,
+		curl from container, solution (NAT vs NLB)
