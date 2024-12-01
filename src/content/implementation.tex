@@ -79,7 +79,7 @@
 
 		\textbf{TODO!!! INSERT AN IMAGE OF AN UML DIAGRAM OF THE STARTING APPLICATION}
 
-	\section{Generator Client}
+	\section{Generator Client} \label{Generator Client}
 			Now that the deployed implementation has been been described, we can restructure our application, so that the 
 			model generation is done via the generation microservice.
 
@@ -109,7 +109,7 @@
 					\item The client connects to the server via a ClientUpgradeRequest. The connection includes a custom header for the UUID of the worker.
 					\item Sending the generation requests via sendGenerationRequest method. The method sends a structured JSON payload containing the request type,
 					the UUID, the problem description, and a random seed. This start the model generation process on the server
-					\item Sending generation cancel requests via the sendCancelRequest method. This client sends a JSON, with the UUID of the generation to be 
+					\item \label{clientcancel}Sending generation cancel requests via the sendCancelRequest method. This client sends a JSON, with the UUID of the generation to be 
 					executed. Each generation opens a new session, with a new UUID for the server, so they can be uniquely idenfitied.
 				\end{itemize} 
 			\subsubsection{Receiving from the server} 
@@ -174,7 +174,7 @@
 					\item setState: Configures the worker with the input document, random seed, and timeout settings.
 					\item start and startTimeout: Enqueues the worker for execution and schedules a timeout to enforce task completion within a defined duration.
 					\item doRun: Executes the remote model generation logic by communicating with the external service.
-					\item cancel: Cancels the task, ensuring both local and remote operations are halted gracefully.
+					\item \label{workercancel}cancel: Cancels the task, ensuring both local and remote operations are halted gracefully.
 				\end{itemize}
 
 				The interface is a reusable API, which both the old ModelGenerationWorker, and our newly created ModelRemoteGenerationWorker implement.
@@ -226,7 +226,7 @@
 				needed key-value pairs is pretty straighforward. These are then forwarded to the ModelGeneratorDispatcher, 
 				which manages the actual model generation task.
 
-				For "cancel" messages, the endpoint instructs the ModelGeneratorDispatcher to cancel an ongoing generation task associated with the provided uuid.
+				\label{serverendpointcancel}For "cancel" messages, the endpoint instructs the ModelGeneratorDispatcher to cancel an ongoing generation task associated with the provided uuid.
 
 				Any errors during the WebSocket communication are captured, logged.
 
@@ -263,7 +263,7 @@
 
 			New generation requests are created, initialized and started on separate threads. They are then added to the previously mentioned hashmap.
 
-			Ongoing tasks can be cancelled via the UUID of the generation. As the hashmap stores these generation tasks identified by their UUID, it is fairly easy to do.
+			\label{servercanceldispatcher}Ongoing tasks can be cancelled via the UUID of the generation. As the hashmap stores these generation tasks identified by their UUID, it is fairly easy to do.
 
 			Once a client has disconnected, the belonging task is cancelled, if not finished yet. The said task is removed from the hashmap. The UUID identification is 
 			useful here aswell.
@@ -291,7 +291,7 @@
 				received by the GeneratorServerEndpoint over WebSocket, and are given to an executor object by the ModelGeneratorDispatcher.
 				\item \textbf{Task Execution (in run()):} The class handles the execution of the model generation. This is done in the exact same way, as it was done previously at the local ModelGenerationWorker.
 				\item \textbf{Client communication:} By getting an open WebSocket session, the class instance can send generation state results, metadata and errors to the clients.
-				\item \textbf{Cancellation support:} The task can be interrupted or canceled at any point, ensuring that unnecessary processing is avoided. This is especially useful for timeout scenarios or user-initiated cancellations.
+				\item \label{serverexecutorcancel}\textbf{Cancellation support:}The task can be interrupted or canceled at any point, ensuring that unnecessary processing is avoided. This is especially useful for timeout scenarios or user-initiated cancellations.
 			\end{itemize}
 			The key features of the class are:
 			\begin{itemize}
@@ -370,7 +370,7 @@
 
 		TODO!!!!! IMAGE OF THE BUILD PIPELINE: Start->build.sh->gradle->preparecontext->docker bake
 
-	\section{Deploying on AWS}
+	\section{Deploying on AWS} \label{awsdeploy}
 		As the docker images, desribed in section \ref{Docker images} were pushed to the remote Docker Hub registry, it was ready to be deployed on the AWS infrastructure, the 
 		same way it was planned in section \ref{awsdecision}.
 
@@ -382,7 +382,7 @@
 		I could deploy my application with virtually no associated costs. I used the AWS Management Console, which is the web GUI for 
 		managing our AWS infrastructure.
 
-		\subsection{Task definitions}
+		\subsection{Task definitions} \label{awstasks}
 			First I set my tasks up. The tasks are basically the container instances of an application within the AWS ECS environment. 
 			I created a task
 			for the generator microservice called refinery-generator and the backend server called refinery-language-web.
@@ -395,7 +395,7 @@
 			For health checks, I used basic curl requests to the host and ports of the services. This caused some headaches in the 
 			generator microservice deployment (\ref{healthcheck}).
 
-		\subsection{Service definitions}
+		\subsection{Service definitions} \label{awsservices}
 			Then I created a refinery cluster, with services running the defined tasks. The services are within an EC2 auto scaling group. 
 			This allows us to scale our container instances, if they are heavily used, and the resource usage is over a threshold.
 			For this I set up two treshholds:
@@ -406,7 +406,7 @@
 			I used Amazon's t3.micro EC2 instances for the auto scaling group, which are eligible for the free tier accounts. 
 			They each have 2 vCPUs with 4 threads and 1GB of RAM.
 		
-		\subsection{Load Balancer definition}
+		\subsection{Load Balancer definition} \label{awslb}
 			An application load balancer (ALB) was created for the 
 			backend and the generator server. The ALB would forward traffic to the running container instances within a target group, as longs as their
 			health checks pass. 
@@ -511,6 +511,8 @@
 		I decided to go with the Network Load Balancer, as the hourly rate of a NAT gateway is more expensive, than the hourly rate of a 
 		Network Load Balancer \cite{natprice} \cite{nlbprice}. The hourly rate of a NAT gateway is \$0.046 dollars. The hourly rate of 
 		the NLB is calculated more complicatedly. However, based on the example calculations provided on the AWS website (\cite{nlbprice}),
-		with lower traffic the hourly rate would come down to nearly half of the price of the NAT gateway.
+		with lower traffic the hourly rate would come down to nearly half of the price of the NAT gateway. I had to modify the task 
+		configuration of the backend: I modified the "REFINERY\_GENERATOR\_WS\_HOST" environment variable to point to the DNS of the 
+		Network Load Balancer. 
 
 		TODO!!! IMAGE OF THE FINAL Infrastructure!!!!!

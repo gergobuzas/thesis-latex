@@ -1,21 +1,73 @@
 \chapter{Evaluation}
 
 	\section{Requirement analysis}
-	In this section I'll go over the requirements that were made before the beginning of the project and showcase how each of them are satisfied.
-	The backend of the application is scalable in several way. 
-	TODO write down how each requirement is satisfied from the specification
+	In this section I'll go over the requirements that were made before the beginning of the project (\ref{requirements}) 
+	and showcase how each of them are satisfied.
+
+	The backend of the application is scalable in several ways. The most obvious one, is how the application is deployed on AWS. 
+	If the resource usages hit a certain treshold, a new task is deployed. If the task cannot fit on an already running EC2 instance,
+	the running EC2 instances scale up. This was desribed in section \ref{awsdeploy}. The other way the application supports 
+	scalability is the way it handles multiple generation requests. Both the server (\ref{Generator Server}) and the client
+	(\ref{Generator Client}) for the generator 
+	functionality support multithreaded operation. As a result, generation requests can run in parallel, and the resource utilization
+	is improved.
+
+	The generation can be cancelled. The backend sends cancellation requests to the generator server (\ref{clientcancel}).
+	When the generator server receives a cancel request (\ref{serverendpointcancel}), it instructs the dispatcher 
+	(\ref{servercanceldispatcher}) to cancel the generation on the executor (\ref{serverexecutorcancel}).
+
+	The frontend is able to show the state of the model generation. The states are sent by the generator server's executor via
+	the open session to the clients.
+
+	There is a timeout set for both the backend generator client and the generator server. This insures that even is some kind of 
+	unexpected operation happens, the generation won't be stalled and use resources in a locked state.
+
+	The editor and the generator can be deployed together. During development phase, the backend and the generator server can be 
+	deployed together, via the gradle "run" task. This starts running both the generator microservice and the backend locally.
+	Other than that a docker compose file was written, so that the containerized applications can be run locally.
+
+	One optional requirement wasn't satisfied by this implementation. The creation of other type of clients other than the browser
+	based one is possible, but tedious. My testing python script basically acts as a different client, but it replicates the WebSocket
+	messages of the frontend client, in order to create an editing session and send generation requests.
+
+	The price of the hosting has changed due to the issues described in \ref{ALB NAT}. The price of the deployment for an hourly rate 
+	is expected to be:
+
+	TODO WRITE THE FREAKING PRICE!!!
 
 	\section{Benchmarks}
+		\subsection{Test setup}
+		I wanted to test, whether the response times of the deployed application really improved with the modifications.
 
-	\subsection{Test setup}
-	TODO how the test environment was created
+		I wrote a Python script replicating the WebSocket messages of the Refinery frontend. First it creates the connection
+		towards the server. Then sends the initial update
+		of the example text, that can be seen in the editor at start. Then a generation request is sent to the backend and the start time of the generation
+		is logged. When all of the generation results have arrived and none of them is an error, the end time of the generation is logged. 
+		The script is implemented in a way, where it can run in a multithreaded way. I can send out as many simultaneous generation requests 
+		from as many python clients as I'd want to. In this test, I'll send out 1, 25, 50, 75, 100, 125, 150, 175, 200, 225 generation requests
+		at the exact same time, and see how the response times improve.
 
-	TODO What kind of tests were done
+		The running of the python test client could be done on an Amazon EC2 instance or on a personal computer. I have decided to run the test 
+		from my own personal computer, as this provides a more accurate representation of the real usage of the application.
 
-		\subsubsection{External threats to validity}
+		The tests were performed with two t3.micro EC2 instances running at the start. These VMs have 2vCPUs and 1GB of memory. I allocated
+		2vCPUs and 0.9GBs of memory for each task. Since I was running two services, with the forementioned task configurations, 
+		those wouldn't be able to fit on a single EC2 instance. The auto scaling acted accordingly, and deployed the services on two 
+		separate EC2 instance. 
 
-		\subsubsection{Internal threats to validity}
-	
+			\subsubsection{External threats to validity}
+			Since the infrastructure is deployed on Amazon's infrastructure, the availability of the service and the communication speeds between the two services 
+			depend on Amazon's network. As the results cannot be 100\% accurate, repeated testing should be
+			performed.
 
-	\subsection{Results}
-	TODO Write down the results and analyze them
+			The network speeds are not constant and can be very volatile during the period of the test. The upload and download speeds of my computer, running the 
+			python test client can also make some test data dirty / invalid.  Repeated testing should also solve this threat.
+
+			The load balancer for the backend allows accepts traffic from anything on the public internet. Although the chance of it is really low
+			but denial of service attacks migth invalidate the results of the test. I tried to lower the chance of this happening, by applying a security group
+			to the load balancer for the duration of the test. With this, the load balancer would only allow inbound traffic from my computer's public ip address.
+			Obviously this address is not only assigned for my computer, but I think this significantly lowers the amount of connections, that might try to tinker
+			with our server.
+
+		\subsection{Results}
+		TODO Write down the results and analyze them
