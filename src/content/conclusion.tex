@@ -1,4 +1,4 @@
-\chapter{Conclusion}
+\chapter{Conclusion} \label{Conclusion}
 
 	The purpose of the thesis was to design, implement the architecture and deploy the Refinery graph solver's backend in the AWS cloud environment.
 	The emphasis was on the model generation part of the already existing architecture.
@@ -12,8 +12,12 @@
 	In Chapter \ref{Implementation}. I described what changes were made to the codebase and the build scripts. Then I wrote about the dockerization 
 	of the application. Lastly, I deployed the application on AWS, with careful considerations to price and scalability.
 
-	In Chapter \ref{Evaluation}. I evaluated how the changes satisfy the requirements that were made in Chapter \ref{overview}. I benchmarked
-	my application: visualized the results and analyzed them.
+	In Chapter \ref{Evaluation}. I evaluated how the changes satisfy the requirements that were made in Chapter \ref{overview} section \ref{requirements}.
+	I benchmarked
+	my application: visualized the results and analyzed them. We could see, that under heavy usage, the response times could be improved, 
+	however it comes with bigger deployment costs / AWS fees, and under lower usage, the improvements are diminishing. 
+	As a result, I conclude that it is not worth it to constantly run the application with the 
+	generator microservice constantly running and being utilized, as the hourly rates are doubled.
 
 	\section{Future work}
 		The current implementation of the generator microservice doesn't handle threadpools correctly at the server side, as seen in \ref{testthree}.
@@ -28,4 +32,4 @@
 
 		The scalability methods are very limited because of AWS. The main scalability factors are the resource utilizations
 		of the CPU and the RAM of each service. This could be improved in the future, where more factors are considered, and the scaling-up and 
-		scaling-down of the infrastructure is handled faster.
+		scaling-down of the infrastructure is handled differently.

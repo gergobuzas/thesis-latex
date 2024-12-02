@@ -2,6 +2,46 @@
 \chapter{\bevezetes}
 %----------------------------------------------------------------------------
 
-A bevezető tartalmazza a diplomaterv-kiírás elemzését, történelmi előzményeit, a feladat indokoltságát (a motiváció leírását), az eddigi megoldásokat, és ennek tükrében a hallgató megoldásának összefoglalását.
+Graph analysis problems can be approached through partial modeling. By leveraging
+formal methods of partial modeling, these problems can be verified using automatically
+generated test data derived from the partial model definitions.
 
-A bevezető szokás szerint a diplomaterv felépítésével záródik, azaz annak rövid leírásával, hogy melyik fejezet mivel foglalkozik.
+Refinery is a cloud-based "Graph Solver as a Service" web application. It supports problem
+definition for problems which can be mathematically retrieved to a graph-related problems.
+The application has an editor, which constantly checks for the correctness of our problem definition:
+both semantically and syntactically. The editor uses the custom-made partial modeling language of Refinery.
+
+Users of the application can generate a model, representing their defined graph problems. The generation of 
+said model can be quite resource heavy and may take several seconds to perform. 
+This generation is currently performed in the same backend server, towards which the frontend clients of the application
+connect with. 
+
+Under increased usage from the users, new connections made to the backend server might not be possible because of 
+the increased workloads on the server. Furthermore, response times might make the user experience worse for the users, due to the increased response
+times or timeouts.
+
+This issue should only arises, under extreme usage-circumstances. The deployed infrastructure in production already mitigates this issue by 
+the use of auto scaling and load balancers. However, the model generation is still done on the same server as the backend server of 
+the application.
+
+The scope of my thesis is the design and implementation of a generator service, which can be integrated into the workflow of the model generation.
+By implementing a generator service, it is hoped, that the response times under heavy usage can improve. All of this should be performed by 
+putting extra care into the scalabity of the application. The costs associated with the improvements should also be considered.
+
+In Chapter \ref{Background}, I introduce the technologies, that are already or could be used for implementation of the Refinery web application.
+This is done with extra attention put towards the model generation part of the application.
+
+In Chapter \ref{overview}, I go over the current implementation of the application. I describe the frontend and the current backend of the application.
+At the end, I set requirements for the modification of the application, which should be considered for all of the latter parts of the thesis.
+
+In Chapter \ref{considerations}, I list the possible implementations for the generator service. The advantages and disadvantages of all implementation 
+possibilities are considered both architecturally and infrastructurally. I compare the possibilities and draw a conclusion, of what should be implemented.
+
+In Chapter \ref{Implementation}, I implement the architectural and the infrastructural changes that were designed in Chapter \ref{considerations}.
+
+In Chapter \ref{Evaluation}, I evaluate how the changes implemented in chapter \ref{Implementation} satisfy the requirements made 
+in section \ref{requirements}. I benchmark the new implementation compared to the old implementation. I draw a conclusion, how succesful the 
+project was.
+
+Last, but not least, in Chapter \ref{Conclusion}, I summarize the results and desribe the future improvements that can or need to be 
+done in the future.
