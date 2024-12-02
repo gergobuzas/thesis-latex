@@ -1,82 +1,63 @@
 \chapter{Background} \label{Background}
 \section{Refinery}
-	Refinery \cite{refinery} is an open-source framework designed to automate the synthesis of diverse, consistent domain-specific graph models. 
-	It features a high-level specification language that leverages partial models to concisely define a variety of graph generation challenges. 
-	With its modern, cloud-based architecture, Refinery provides a scalable "Graph Solver as a Service" that applies logic-based reasoning rules to 
-	efficiently produce diverse solutions by refining partial models. This framework supports applications such as system-level architecture synthesis,
-	test generation for modeling tools, and traffic scenario synthesis for autonomous vehicles.
+	In the context of the thesis, Refinery \cite{refinery} is a web application, hosted at "https://refinery.services" and can be used as a standalone service.
+	It features a high-level specification language that leverages partial models in order to define a variety of graph generation challenges. 
+	With its cloud-based architecture, Refinery provides a scalable "Graph Solver as a Service" that applies logic-based reasoning rules to 
+	produce solutions. Once the user of the application finished with the definition of 
+	their graph-related problem they can generate a model via the press of the "Generate" button. 	
+	This is the application whose architecture is going to be modified within the scope of this thesis..
 
-	Refinery is also hosted as a web application at "https://refinery.services" and can be used as a standalone service.
-	This application allows the user to define their graph modelling problems using the specification language. 
 
 \section{Java}
-	Java \cite{java} is a widely-used, object-oriented programming language known for its platform independence, achieved through the Java Virtual Machine (JVM) 
-	which allows Java applications to run on any device or operating system. This portability, combined with its robustness, scalability, and extensive libraries,
-	makes Java a popular choice for developing enterprise-level applications, web services, and backend systems.
+	Java \cite{java} is a widely-used, object-oriented programming language known for its platform independence, achieved through the Java Virtual Machine (JVM). 
+
+	The backend of Refinery was programmed using the Java programming language. In the scope of this thesis, Java the main programming being used.
 
 	Java supports core object-oriented programming principles like encapsulation, inheritance, and polymorphism, promoting code modularity and reusability.
-	Additionally, Java’s memory management is handled through an automatic garbage collector, which improves performance by reclaiming memory used by objects 
-	that are no longer accessible. The garbage collector (GC) also helps developers, so that they don't have to think about memory management when writing code in Java.
-	With lower lever languages like C and C++, memory management has been a constant issue, as memory leakages worsen performance and software security can be hurt.
-	Java also has a strong emphasis on security, providing a secure runtime environment through features such as bytecode 
-	verification and sandboxing, which helps prevent unauthorized access and code manipulation.
+	This comes in handy for the modification of the already existing codebase, while preserving the old implementaiton.
 
 	When working with Java, a Java Development Kit (JDK) has to be installed on the system.
 	The Java Development Kit (JDK) is a distribution of Java technology by Oracle Corporation. 
-	It implements the Java Language Specification (JLS) and the Java Virtual Machine Specification (JVMS) 
-	and provides the Standard Edition (SE) of the Java Application Programming Interface (API). 
+	The Refinery backend project uses JDK 21.
 
 \section{Gradle}
-	Gradle \cite{gradle} is a build automation tool for multi-language software development. It controls the development process in the tasks of compilation 
-	and packaging to testing, deployment, and publishing. Supported languages include Java (as well as Kotlin, Groovy, Scala), C/C++, and JavaScript.
-	Gradle builds on the concepts of Apache Ant and Apache Maven, and introduces a Groovy- and Kotlin-based domain-specific language contrasted with 
-	the XML-based project configuration used by Maven. Gradle uses a directed acyclic graph to determine the order in which tasks can be run, 
-	through providing dependency management. It runs on the Java Virtual Machine.
+	Gradle \cite{gradle} is the build automation tool used for the Refinery repository and it greatly helps the package management, 
+	building, testing and the local deployment of the project / subprojects.
 
-	Gradle was designed for multi-project builds, which can grow to be large. It operates based on a series of build tasks that can run serially or in parallel.
-	Incremental builds are supported by determining the parts of the build tree that are already up to date; any task dependent only on those parts does not need 
-	to be re-executed. It also supports caching of build components, potentially across a shared network using the Gradle Build Cache. 
-	The software is extensible for new features and programming languages with a plugin subsystem. 
+	Gradle supports Java as a programming language, which is the language in which the backend of Refinery was written.
+
+	Gradle was designed for multi-project builds, like the Refinery project, consisting of several subprojects. 
+	It operates based on a series of build tasks that can run serially or in parallel. This can come in handy for the backend and the generator service 
+	running simultaneously, locally as separate subprojects.
+
+	Incremental builds and caching of build components are supported, which provide faster build times during the development.
 
 \section{Jetty}
 	Eclipse Jetty \cite{jetty} provides a highly scalable and memory-efficient web server and servlet container, supporting many protocols
-	 such as HTTP/3,2,1 and WebSocket.
+	 such as HTTP/3,2,1 and WebSocket. The original backend of Refinery uses Jetty as its server and could be a viable option for the future generation
+	 microservice aswell.
 
 \section{JSON}
-	JSON (JavaScript Object Notation) \cite{json} is a lightweight data-interchange format. It is easy for humans to read and write. 
-	It is easy for machines to parse and generate. It is based on a subset of the JavaScript Programming Language Standard ECMA-262 3rd Edition - December 1999.
-	JSON is a text format that is completely language independent but uses conventions 
-	that are familiar to programmers of the C-family of languages, including C, C++, \text{C\#}, Java, JavaScript, Perl, Python, and many others. These properties make JSON an ideal data-interchange language.
+	JSON (JavaScript Object Notation) \cite{json} is a lightweight data-interchange format. 
 
 	JSON is built on two structures:
-
 	\begin{itemize}
 		\item A collection of name/value pairs. In various languages, this is realized as an object, record, struct, dictionary, hash table, 
 		keyed list, or associative array.
 		\item An ordered list of values. In most languages, this is realized as an array, vector, list, or sequence.
 	\end{itemize}
 
-	These are universal data structures. Virtually all modern programming languages support them in one form or another. 
-	It makes sense that a data format that is interchangeable with programming languages also be based on these structures.
+	The Refinery web application uses JSON messages as a way to communicate model generation request states, results and metadata between the frontend and the backend.
 
-	In JSON, they take on these forms:
-
-	\begin{itemize}
-		\item An object is an unordered set of name/value pairs.
-		\item An object begins with left brace and ends with right brace.
-		\item Each name is followed by colon and the name/value pairs are separated by comma.
-	\end{itemize}
 
 \section{REST API}
 	A REST API \cite{restapi} (also called a RESTful API or RESTful web API) is an application programming interface (API) that conforms to the design principles of 
-	the representational state transfer (REST) architectural style. REST APIs provide a flexible, lightweight way to integrate applications and to connect 
-	components in microservices architectures.
+	the representational state transfer (REST) architectural style. 
 
-	REST APIs communicate through HTTP requests to perform standard database functions like creating, reading,
-	updating and deleting records (also known as CRUD operations) within a resource.
+	REST APIs communicate through HTTP requests to perform standard database functions like creating (POST), reading (GET),
+	updating (PUT) and deleting (DELETE) records (also known as CRUD operations) within a resource.
 
-	REST API would use a GET request to retrieve a record. A POST request creates a new record. A PUT request updates a record, and a DELETE request deletes one. 
-	All HTTP methods can be used in API calls. A well-designed REST API is similar to a website running in a web browser with built-in HTTP functionality.
+	At the start of the thesis, Refinery doesn't use or provide any REST APIs, but the implementation of one for the model generation requests could be a viable option.
 
 \section{Remote Procedure Call}
 	In distributed computing, a remote procedure call (RPC) \cite{rpc} is when a computer program causes a procedure (subroutine) to execute in a different address space 
@@ -84,6 +65,8 @@
 	explicitly writing the details for the remote interaction. That is, the programmer writes essentially the same code whether the subroutine is local to 
 	the executing program, or remote.
 	This is a form of client–server interaction (caller is client, executor is server), typically implemented via a request–response message passing system.
+
+	At the start of the thesis, Refinery doesn't use any RPC libraries, however the use of one (like gRPC) could be used for the model generation service implementation.
 
 \section{gRPC}
 	gRPC (gRPC Remote Procedure Calls) \cite{grpcwiki} is a cross-platform high-performance remote procedure call (RPC) framework. 
