@@ -1,4 +1,4 @@
-\chapter{Evaluation}
+\chapter{Evaluation}\label{Evaluation}
 
 	\section{Requirement analysis}
 	In this section I'll go over the requirements that were made before the beginning of the project (\ref{requirements}) 
@@ -35,7 +35,7 @@
 
 	TODO WRITE THE FREAKING PRICE!!!
 
-	\section{Benchmarks}
+	\section{Benchmarks} \label{Benchmarks}
 		\subsection{Test setup}
 		I wanted to test, whether the response times of the deployed application really improved with the modifications.
 
@@ -140,7 +140,7 @@
 			This is due to the multithreaded generation actually being utilized.
 
 
-		\subsubsection{Third test}
+		\subsubsection{Third test} \label{testthree}
 			These tests were performed with two t3.micro EC2 instances running at the start. 
 			These VMs have 2vCPUs and 1GB of memory. I allocated
 			1vCPUs and 0.4GBs of memory for each task. 
@@ -151,9 +151,51 @@
 			auto scaling. However, even with this modification, the application would not serve generation requests properly.
 			This pointed out a bug in the implementation of the code.
 
-			In the backend's generation client, the dispatcher is the only one using a real threadpool, with a 
+			In the backend's generation client, the PushServiceDispatcher is the only one using a real threadpool, with a 
 			limitation for the amount of threads that can be used. 
 			The implementation for the threadpool is not limiting
-			maximum size at the generator server. This might cause the slowdown, which result in a timeout at the client side of the generation service.
+			maximum size at the generator server. This might cause the slowdown, which results in a timeout at the client side of the generation service.
 			My python script also timed out in these cases. This happened for way too many 
 			requests, so it is something that should be investigated in the future.
+
+			However, the resource usages were very high with the described task resource allocations. The auto scaling of the service worked perfectly,
+			with 5 backend and 8 generator instances running at some point during the test. After the end of the test, the services scaled down 
+			to only using 1 instance for each service.
+
+		\subsubsection{Fourth test}
+			These tests were performed with 6 t3.micro EC2 instances running at the start. 
+			These VMs have 2vCPUs and 1GB of memory. I allocated
+			1vCPUs and 0.4GBs of memory for the backend tasks. 
+			For the generator tasks, 2vCPUs and 0.9GBs of memory were allocated.
+
+			4 EC2 instances were running the backend tasks, while 2 EC2 instances had the generator microservice.
+			These task resource allocations were lowered compared to the allocations in \ref{firsttest} and in \ref{testtwo}.
+
+			The multithreading in the backend clients were setup to only use 2 generation threads.
+
+			The purpose of this test was to see whether the response times can be improved with more threads being allocated for the backend via 
+			the use of several running instances.
+			As the backend uses a queue mechanism for the sendout of the generation requests, I hoped that this would significantly improve the 
+			response times.
+
+			The results were as follows in figure \ref{2threads4web2gen}.
+
+			The only data being invalid is the first generation request. I forced my services to start with several instances, as I was trying to 
+			simulate a scaled up environment for my infrastructure. However, when the generator service receives its first request, it usually takes
+			much longer to complete, due to the dispatcher not being initialized upon server start, only upon the first request.
+
+			The response times improved significantly compared to in figure \ref{4threadsnew}. A linear growth can be noticed between the response times.
+			The medians of this implementation are much lower. However, we have to consider, that with this implementation, the prices associated with hosting
+			can be 3 times as high as the one implemented in \ref{4threadsnew}. Thankfully, since we confirmed auto scaling to be working in \ref{testthree},
+			these response times can also be achieved, without the constant use of 6 EC2 instances.
+
+			\begin{figure}[h]
+				\begin{center}
+					\includegraphics[scale=0.6]{include/imgs/2t_4w_2g_new.PNG}
+					\caption{Generation requests with 2 threads, 4 backend instances and 2 generator instances}
+					\label{2threads4web2gen}
+				\end{center}
+			\end{figure}
+
+			
+

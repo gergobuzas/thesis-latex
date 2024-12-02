@@ -1,3 +1,31 @@
 \chapter{Conclusion}
 
-\section{Future improvements}
+	The purpose of the thesis was to design, implement the architecture and deploy the Refinery graph solver's backend in the AWS cloud environment.
+	The emphasis was on the model generation part of the already existing architecture.
+
+	In Chapter \ref{overview}. I described the state of the application's architecture before my work. This included both the frontend and the backend, with
+	the emphasis being on the backend. The requirements were set so the work could be started on the architecture.
+
+	In Chapter \ref{considerations}. I introduced the potential ways the architecture could be modified while describing the advantages and drawbacks
+	of each implementation.  
+
+	In Chapter \ref{Implementation}. I described what changes were made to the codebase and the build scripts. Then I wrote about the dockerization 
+	of the application. Lastly, I deployed the application on AWS, with careful considerations to price and scalability.
+
+	In Chapter \ref{Evaluation}. I evaluated how the changes satisfy the requirements that were made in Chapter \ref{overview}. I benchmarked
+	my application: visualized the results and analyzed them.
+
+	\section{Future work}
+		The current implementation of the generator microservice doesn't handle threadpools correctly at the server side, as seen in \ref{testthree}.
+		There is no limitation set for the maximum threads that can be started.
+		This caused an issue where the microservice would slow down drastically, and generation responses would not be received 
+		at the client side. The fix for this should include the usage of Java's ExecutorService for the threadpools.
+
+		The response times benchmarked in \ref{Benchmarks} show an improvement compared to the old implementation. However, this improvement
+		is only noticable during increased loads. However, when the usage is not as demanding, the local model generation on the basic backend
+		is fast enough, with the new implementation being more expensive. A hybrid way of working should be implemented, where the model generation 
+		microservice is only deployed, when absolutely needed to. 
+
+		The scalability methods are very limited because of AWS. The main scalability factors are the resource utilizations
+		of the CPU and the RAM of each service. This could be improved in the future, where more factors are considered, and the scaling-up and 
+		scaling-down of the infrastructure is handled faster.
