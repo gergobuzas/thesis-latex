@@ -44,18 +44,16 @@
 		of the example text, that can be seen in the editor at start. Then a generation request is sent to the backend and the start time of the generation
 		is logged. When all of the generation results have arrived and none of them is an error, the end time of the generation is logged. 
 		The script is implemented in a way, where it can run in a multithreaded way. I can send out as many simultaneous generation requests 
-		from as many python clients as I'd want to. In this test, I'll send out 1, 25, 50, 75, 100, 125, 150, 175, 200, 225 generation requests
-		at the exact same time, and see how the response times improve.
+		from as many python clients as I'd want to. In the tests, I sent out 1, 25, 50, 75, 100, 125, 150, 175, 200, 225 generation requests
+		at the exact same time, and analyze how the response times changed.
+
+		The response times were exported to a JSON file at the end of each test. I used python's matplotlib library to visualize the results
+		of each test.
 
 		The running of the python test client could be done on an Amazon EC2 instance or on a personal computer. I have decided to run the test 
 		from my own personal computer, as this provides a more accurate representation of the real usage of the application.
 
-		The tests were performed with two t3.micro EC2 instances running at the start. These VMs have 2vCPUs and 1GB of memory. I allocated
-		2vCPUs and 0.9GBs of memory for each task. Since I was running two services, with the forementioned task configurations, 
-		those wouldn't be able to fit on a single EC2 instance. The auto scaling acted accordingly, and deployed the services on two 
-		separate EC2 instance. 
-
-			\subsubsection{External threats to validity}
+		\subsubsection{External threats to validity}
 			Since the infrastructure is deployed on Amazon's infrastructure, the availability of the service and the communication speeds between the two services 
 			depend on Amazon's network. As the results cannot be 100\% accurate, repeated testing should be
 			performed.
@@ -70,4 +68,92 @@
 			with our server.
 
 		\subsection{Results}
-		TODO Write down the results and analyze them
+		\subsubsection{First test} \label{firsttest}
+		The first tests were performed with two t3.micro EC2 instances running at the start. These VMs have 2vCPUs and 1GB of memory. I allocated
+		2vCPUs and 0.9GBs of memory for each task. Since I was running two services, with the forementioned task configurations, 
+		those wouldn't be able to fit on a single EC2 instance. The auto scaling acted accordingly, and deployed the services on two 
+		separate EC2 instance. 
+
+		The "REFINERY\_MODEL\_GENERATION\_THREADS" environment variable wasn't set in the task configurations. As a result, the tasks ran with only 1 thread
+		allocated for the model generation requests.
+
+		The results were as follows:
+
+		\begin{figure}[h!] 
+			\begin{center}
+				\includegraphics[scale=0.6]{include/imgs/1thread_old.PNG}
+				\caption{Generation requests with the old implementation}
+				\label{1threadold}
+			\end{center}
+		\end{figure}
+
+		With only 1 thread being allocated the response times didn't improve. This comes down to the queueing mechanism of the dispatcher at the client side.
+		Even though our generator server could handle multiple simultaneous generations, the client applies a queue for the sending out of the generation requests
+		That can also be seen in the results. The response times became bigger in a linear way.
+
+		\begin{figure}[h!] 
+			\begin{center}
+				\includegraphics[scale=0.6]{include/imgs/1thread_new.PNG}
+				\caption{Generation requests with the generation runnning on the microservice}
+				\label{1threadnew}
+			\end{center}
+		\end{figure}
+
+		This is due to the nature in which the architecture is implemented. If the client in the backend only uses one thread for sending out the 
+		generation requests, the advantages of the multithreaded working cannot be utilized. If the multithreaded working is not used, the response times 
+		can only become worse, as there is an extra layer of networking communication added to the process. 
+
+		\pagebreak
+		\subsubsection{Second test}\label{testtwo}
+			These tests were performed with two t3.micro EC2 instances running at the start. These VMs have 2vCPUs and 1GB of memory. I allocated
+			2vCPUs and 0.9GBs of memory for each task. 
+
+			The "REFINERY\_MODEL\_GENERATION\_THREADS" environment variable, contrary to the test in \ref{firsttest}, was set in the task configurations. 
+			I set the value of it to be 4. I chose 4, because the t3.micro EC2 instances each have 2 vCPUs with 4 computational threads.
+
+			The results were as follows:
+
+			\begin{figure}[h!] 
+				\begin{center}
+					\includegraphics[scale=0.6]{include/imgs/4threads_old.PNG}
+					\caption{Generation requests with 4 threads, old implementation}
+					\label{4threadsold}	
+				\end{center}
+			\end{figure}
+
+			The results in figure \ref{4threadsold} indicate, that the model generation running in a true multithreaded fashion slows down the old implementation. The 
+			deviation of the response times is much bigger, compared to the results of running on a single thread. Both the medians and the maximum of the response times
+			grow in an exponential way.
+
+			\begin{figure}[h]
+				\begin{center}
+					\includegraphics[scale=0.6]{include/imgs/4threads_new.PNG}
+					\caption{Generation requests with 4 threads and the microservice being used}
+					\label{4threadsnew}
+				\end{center}
+			\end{figure}
+
+			In figure \ref{4threadsnew} a significant decrease can be seen in the response times. 
+			The times were better than the ones of the old implementations in figures 
+			\ref{4threadsold} and the medians were also better compared to figure \ref{1threadold}.
+			This test provided the best response times for the application.
+			This is due to the multithreaded generation actually being utilized.
+
+
+		\subsubsection{Third test}
+			These tests were performed with two t3.micro EC2 instances running at the start. 
+			These VMs have 2vCPUs and 1GB of memory. I allocated
+			1vCPUs and 0.4GBs of memory for each task. 
+			These task resource allocations were lowered compared to the allocations in \ref{firsttest} and in \ref{testtwo}.
+
+			The response times of the test couldn't be acquired, because the application would not work as intended. 
+			I first adjusted the python test script, to handle timeouts aswell, because that seemed to be an issue upon initiated 
+			auto scaling. However, even with this modification, the application would not serve generation requests properly.
+			This pointed out a bug in the implementation of the code.
+
+			In the backend's generation client, the dispatcher is the only one using a real threadpool, with a 
+			limitation for the amount of threads that can be used. 
+			The implementation for the threadpool is not limiting
+			maximum size at the generator server. This might cause the slowdown, which result in a timeout at the client side of the generation service.
+			My python script also timed out in these cases. This happened for way too many 
+			requests, so it is something that should be investigated in the future.
