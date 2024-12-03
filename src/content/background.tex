@@ -1,12 +1,7 @@
 \chapter{Background} \label{Background}
-\section{Refinery}
-	In the context of the thesis, Refinery \cite{refinery} is a web application, hosted at "https://refinery.services" and can be used as a standalone service.
-	It features a high-level specification language that leverages partial models in order to define a variety of graph generation challenges. 
-	With its cloud-based architecture, Refinery provides a scalable "Graph Solver as a Service" that applies logic-based reasoning rules to 
-	produce solutions. Once the user of the application finished with the definition of 
-	their graph-related problem they can generate a model via the press of the "Generate" button. 	
-	This is the application whose architecture is going to be modified within the scope of this thesis..
-
+In this chapter I'll introduce the technologies and the phrases that need to be described for proper understanding of my thesis work.
+Some of these technologies were only considered during the designing part of the thesis, while others were also present 
+during the implementation.
 
 \section{Java}
 	Java \cite{java} is a widely-used, object-oriented programming language known for its platform independence, achieved through the Java Virtual Machine (JVM). 
@@ -49,15 +44,38 @@
 
 	The Refinery web application uses JSON messages as a way to communicate model generation request states, results and metadata between the frontend and the backend.
 
+\section{Hypertext Transfer Protocol}
+	HTTP (Hypertext Transfer Protocol) \cite{httpdoc} is an application layer protocol, designed for enabling communication between clients and servers. 
+	HTTP works as a single request - single response protocol between the communicating endpoints.
+
+	HTTP requests are human readable. They consist of the following parts:
+	\begin{itemize}
+		\item \textbf{Method:} Indicates what type of request the client wants to send to the server. The most used are the following:
+		\begin{itemize}
+			\item GET requests indicate resource fetching
+			\item POST requests indicate resource upload 
+			\item PUT / UPDATE requests indicate updating an existing resource
+			\item DELETE requests indicate removal of an existing resource
+		\end{itemize} 
+		\item \textbf{Path:} The path of the resouce for which we send the request 
+		\item \textbf{Version:} The version of the HTTP protocol
+		\item \textbf{Headers:} Provide additional information for the server that is receiving the request. 
+		\item \textbf{Body:} For some requests (e.g.: POST), additional info is provided here.
+	\end{itemize}
 
 \section{REST API}
 	A REST API \cite{restapi} (also called a RESTful API or RESTful web API) is an application programming interface (API) that conforms to the design principles of 
 	the representational state transfer (REST) architectural style. 
 
+	REST API's via the use of the HTTP protocol utilize a single request - single response communication methodology.
 	REST APIs communicate through HTTP requests to perform standard database functions like creating (POST), reading (GET),
 	updating (PUT) and deleting (DELETE) records (also known as CRUD operations) within a resource.
 
-	At the start of the thesis, Refinery doesn't use or provide any REST APIs, but the implementation of one for the model generation requests could be a viable option.
+	REST API's can be implemented really easily due to the efforts of many server framework providers. For Java, these include 
+	the very popular Spring and Jetty frameworks. 
+
+	At the start of the thesis, Refinery doesn't use or provide any REST APIs, but the implementation of one for the model 
+	generation requests could be a viable option.
 
 \section{Remote Procedure Call}
 	In distributed computing, a remote procedure call (RPC) \cite{rpc} is when a computer program causes a procedure (subroutine) to execute in a different address space 
@@ -70,225 +88,206 @@
 
 \section{gRPC}
 	gRPC (gRPC Remote Procedure Calls) \cite{grpcwiki} is a cross-platform high-performance remote procedure call (RPC) framework. 
-	gRPC was initially created by Google, but is open source and is used in many organizations. 
-	Use cases range from microservices to the "last mile" of computing (mobile, web, and Internet of Things). 
-	gRPC uses HTTP/2 for transport, Protocol Buffers as the interface description language, and provides features such as authentication,
-	bidirectional streaming and flow control, blocking or nonblocking bindings, and cancellation and timeouts. 
-	It generates cross-platform client and server bindings for many languages. Most common usage scenarios include connecting services in a microservices 
-	style architecture, or connecting mobile device clients to backend services.
+	gRPC uses HTTP/2 for transport.	It generates cross-platform client and server bindings for many languages (which includes Java). 
 
-	In gRPC, a client application can directly call a method on a server application on a different machine as if it were a local object, 
-	making it easier for you to create distributed applications and services. As in many RPC systems, gRPC is based around the idea of 
-	defining a service, specifying the methods that can be called remotely with their parameters and return types. \cite{grpcspec}
-	
 	\begin{figure}[h!]
 		\begin{center}
 			\includegraphics[scale=0.8]{include/imgs/grpc_works.PNG}	
 		\end{center}
-		\caption{gRPC server and the clients \cite{grpcspec}}
+		\caption{gRPC server and the clients, as represented in gRPC documentation \cite{grpcspec}}
 	\end{figure}
 
-	On the server side, the server implements this interface and runs a gRPC server to handle client calls. On the client side, the
-	client has a stub (referred to as just a client in some languages) that provides the same methods as the server.
-
-	gRPC clients and servers can run and talk to each other in a variety of environments - from servers inside Google to your own desktop - 
-	and can be written in any of gRPC’s supported languages. So, for example, you can easily create a gRPC server in Java with clients 
-	in Go, Python, or Ruby. In addition, the latest Google APIs will have gRPC versions of their interfaces, letting you easily build Google functionality 
-	into your applications.
+	In gRPC, a client application can directly call a method, which is defined on a server application on a different machine, as if it were a local object. 
+	gRPC clients and servers can run and talk to each other in a variety of environments. This includes both on-prem, and more importantly in our case,
+	cloud-based environments.
+	\cite{grpcspec}
 
 	\subsection{Core concepts}
-
-	Some of the core concepts of gRPC include \cite{grpcspec2}:
+	Some of the core concepts of gRPC include, but not limited to \cite{grpcspec2}:
 	\begin{itemize}
-		\item \textbf{Unary RPC:} This is the simplest type of RPC. The client sends a single message and receives a single response. 
-		\item \textbf{Server streaming RPC:} The server responds with multiple responses to the client. 
+		\item \textbf{Server streaming RPC:} The server responds with multiple responses to the client, which sends a single request. 
 		After sending all its messages, the server’s status details (status code and optional status message) and optional trailing metadata are sent to the client.
 		This completes processing on the server side. The client completes once it has all the server’s messages.
-		\item \textbf{Client streaming RPC:} The client sends multiple messages and the server responds with one response message (along with its status details and optional trailing metadata). 
-		\item \textbf{Bidirectional streaming RPC:} The call is initiated by the client invoking the method and the server receiving the client metadata, method name, and deadline. The server can choose to send back its initial metadata or wait for the client to start streaming messages.
-		Client- and server-side stream processing is application specific. Since the two streams are independent, the client and server can read and write messages in any order.
 		\item \textbf{Deadlines/Timeouts:} gRPC allows clients to specify how long they are willing to wait for an RPC to complete. On the server side, the server can query to see if a particular RPC has timed out, or how much time is left to complete the RPC.
-		\item \textbf{RPC termination:} In gRPC, both the client and server make independent and local determinations of the success of the call, and their conclusions may not match. This means that, for example, you could have an RPC that finishes successfully on the server side (“I have sent all my responses!”) but fails on the client side (“The responses arrived after my deadline!”). It’s also possible for a server to decide to complete before a client has sent all its requests.
 		\item \textbf{Cancelling an RPC:} Either the client or the server can cancel an RPC at any time. A cancellation terminates the RPC immediately so that no further work is done. The changes made before the cancellation are not rolled back.
 	\end{itemize}
 
+	The current implementation of Refinery doesn't use the gRPC framework. However, it can be a possible solution for the generator microservice implementaiton. 
+	The remote method execution can lower the resource usage of the backend server.
+
 \section{WebSocket}
 	The WebSocket Protocol \cite{websocket} enables two-way communication between a client
-	running untrusted code in a controlled environment to a remote host
-	that has opted-in to communications from that code.  The security
-	model used for this is the origin-based security model commonly used
-	by web browsers.  The protocol consists of an opening handshake
-	followed by basic message framing, layered over TCP.  The goal of
+	and a remote host.
+	The goal of
 	this technology is to provide a mechanism for applications that need two-way communication with servers that does
-	not rely on opening multiple HTTP connections.
+	not rely on opening multiple HTTP connections, but using one open connection, for the duration of the communication.
+
+	The following part is taken from RFC 6455 \cite{websocket}, which describes why the creation of WebSocket procotol was needed.
+
+	\textit{
+		"Creating web applications using only HTTP, that need bidirectional
+		communication between a client and a server has a major problem. 
+		It requires the abuse of HTTP to poll the
+		server for updates while sending upstream notifications as distinct
+		HTTP calls.
+		This results in a variety of problems:"
+	}
+	\begin{enumerate}
+		\item \textit{"The server is forced to use a number of different underlying TCP
+		connections for each client: one for sending information to the
+		client and a new one for each incoming message."}
+		\item \textit{"The wire protocol has a high overhead, with each client-to-server
+		message having an HTTP header."}
+		\item \textit{"The client-side script is forced to maintain a mapping from the
+		outgoing connections to the incoming connection to track replies."}
+	\end{enumerate}
 
 	\begin{figure}[h!]
 		\includegraphics{include/imgs/http.PNG}
-		\caption{HTTP connection}
+		\caption{Regular HTTP connection}
 	\end{figure}
 
-	Historically, creating web applications that need bidirectional
-	communication between a client and a server (e.g., instant messaging
-	and gaming applications) has required an abuse of HTTP to poll the
-	server for updates while sending upstream notifications as distinct
-	HTTP calls.
-	This results in a variety of problems:
-
-	\begin{enumerate}
-		\item The server is forced to use a number of different underlying TCP
-		connections for each client: one for sending information to the
-		client and a new one for each incoming message.
-		\item The wire protocol has a high overhead, with each client-to-server
-		message having an HTTP header.
-		\item The client-side script is forced to maintain a mapping from the
-		outgoing connections to the incoming connection to track replies.
-	\end{enumerate}
-
-	A simpler solution would be to use a single TCP connection for
-	traffic in both directions.  This is what the WebSocket Protocol
-	provides.
-
-	\begin{figure}[h!]
-		\includegraphics{include/imgs/websocket.PNG}
-		\caption{WebSocket connection}
-	\end{figure}
+	\textit{"A simpler solution would be to use a single TCP connection for
+	traffic in both directions. This is what the WebSocket Protocol
+	provides. A solution for these HTTP polling scenarios."}
 
 	After the initial WebSocket handshake, the communication protocol is upgraded to WebSocket from HTTP.
 	If no communicaiton is happening, the connection is kept alive between the two communicating endpoints via the use of ping and pong messages.
 	If a ping sender endpoint doesn't receive a pong response, the connection is lost, and the endpoints are disconnected.
 	Other than that, the protocol allows for full bidirectional real-time messaging to the endpoints.
 
-		
+	\begin{figure}[h!]
+		\includegraphics{include/imgs/websocket.PNG}
+		\caption{WebSocket connection over HTTP}
+	\end{figure}
+
+	The current implementation of Refinery already utilizes WebSocket. The frontend communicates editor changes and model generation
+	states, results and metadata via the use of WebSocket. However, for the implementation of the generator microservice, it could also be a viable solution.
 
 \section{Shell}
 	In computing, a shell \cite{shell} is a computer program that exposes an operating system's services to a human user or other programs. 
 	In general, operating system shells use either a command-line interface (CLI) or graphical user interface (GUI), 
 	depending on a computer's role and particular operation. It is named a shell because it is the outermost layer around the operating system.
 
-	Operating systems provide various services to their users, including file management, process management (running and terminating applications), batch processing, and operating system monitoring and configuration.
+	In addition to shells running on local systems, there are different ways to make remote 
+	systems available to local users; such approaches are usually referred to as remote access (like the use of SSH) or remote administration.
 
-	Most operating system shells are not direct interfaces to the underlying kernel, even if a shell communicates with the user via peripheral devices 
-	attached to the computer directly. Shells are actually special applications that use the kernel API in just the same way as it is used by 
-	other application programs. A shell manages the user–system interaction by prompting users for input, interpreting their input, and then 
-	handling output from the underlying operating system. In addition to shells running on local systems, there are different ways to make remote 
-	systems available to local users; such approaches are usually referred to as remote access or remote administration.
+	Within the Refinery project, the use of a CLI based Unix shell (like bash) is needed for the execution of shell scripts. Furthermore, it can come in handy 
+	as a remote access for our VMs via the use of SSH, which allows debugging our infrastructure.
 
 \section{Shell script}
-	A shell script \cite{shellscript} is a computer program designed to be run by a Unix shell, a command-line interpreter. The various dialects of shell scripts 
-	are considered to be command languages. Typical operations performed by shell scripts include file manipulation, program execution, and printing text.
+	A shell script \cite{shellscript} is a computer program designed to be run by a Unix shell, a command-line interpreter. Typical operations performed by shell scripts include file manipulation, program execution, and printing text.
 	The term is also used more generally to mean the automated mode of running an operating system shell.
 
+	The Refinery project has Unix shell scripts, which automate the build process and the containerization of the application.
+
 \section{Cloud Computing}
-	Cloud computing \cite{cloud} is the on-demand availability of computing resources (such as storage and infrastructure), as services over the internet. 
-	It eliminates the need for individuals and businesses to self-manage physical resources themselves, and only pay for what they use.
+	The following description is taken from a popular public cloud provider's, Google's cloud computing introduction:
 
-	Cloud computing service models are based on the concept of sharing on-demand computing resources, software, and information over the internet. 
+	\textit{`Cloud computing \cite{cloud} is the on-demand availability of computing resources (such as storage and infrastructure), as services over the internet. 
+	It eliminates the need for individuals and businesses to self-manage physical resources themselves, and only pay for what they use.'}
+
+	\textit{`Cloud computing service models are based on the concept of sharing on-demand computing resources, software, and information over the internet. 
 	Companies or individuals pay to access a virtual pool of shared resources, including compute, storage, and networking services, which are located on
-	remote servers that are owned and managed by service providers. 
+	remote servers that are owned and managed by service providers.'}
 
-	One of the many advantages of cloud computing is that you only pay for what you use. This allows organizations to scale faster and more efficiently 
-	without the burden of having to buy and maintain their own physical data centers and servers.  
-	In simpler terms, cloud computing uses a network (most often, the internet) to connect users to a cloud platform where they request and access 
-	rented computing services.
+	The infrastructure of Refinery is described as a public cloud deployment. 
+	This means, that the infrastructure is run by third-party cloud service providers.
+	The providers offer compute, storage and network resources over the internet. 
 
-	There are three different cloud computing deployment models:
-	\begin{itemize}
-		\item \textbf{Public clouds} are run by third-party cloud service providers. They offer compute, storage, and network resources over the internet, 
-		enabling companies to access shared on-demand resources based on their unique requirements and business goals.
-		The most popular public cloud providers are Amazon, Google and Microsoft.
-		\item \textbf{Private clouds} (also known as "on-premises" or "on-prem") are built, managed, and owned by a single organization 
-		and privately hosted in their own data centers.
-		They provide greater control, security, and management of data while still 
-		enabling internal users to benefit from a shared pool of compute, storage, and network resources.
-		\item \textbf{Hybrid clouds} are the mixture of using both public- and private clouds within the same organization.
-	\end{itemize}
-
-	There are three main types of cloud computing services:
-	\begin{itemize}
-		\item \textbf{Infrastructure as a service (IaaS)} offers on-demand access to IT infrastructure services, 
-		including compute, storage, networking, and virtualization. It provides the highest level of control over your IT 
-		resources and most closely resembles traditional on-premises IT resources.
-		\item \textbf{Platform as a service (PaaS)} offers all the hardware and software resources needed for cloud 
-		application development. With PaaS, companies can focus fully on application development without 
-		the burden of managing and maintaining the underlying infrastructure.
-		\item \textbf{Software as a service (SaaS)} delivers a full application stack as a service, from underlying 
-		infrastructure to maintenance and updates to the app software itself. A SaaS solution is often an end-user application
-		, where both the service and the infrastructure is managed and maintained by the cloud service provider.
-	\end{itemize}
+	The cloud services used for the deployment of Refinery are called `Infrastructure as a service (IaaS)'.
+	IaaS service means \cite{cloud} \textit{`on-demand access to IT infrastructure services, 
+		including compute, storage, networking, and virtualization. It provides the highest level of control over the IT 
+		resources and most closely resembles traditional on-premises IT resources.'}
 
 	\subsection{Cloud Native}
-		Cloud native \cite{cloudnative} is the software approach of building, deploying, and managing modern applications 
-		in cloud computing environments. Modern companies want to build highly scalable, flexible, and 
-		resilient applications that they can update quickly to meet customer demands. 
-		To do so, they use modern tools and techniques that inherently support application
-		development on cloud infrastructure. These cloud-native technologies support fast 
-		and frequent changes to applications without impacting service delivery, providing
-		adopters with an innovative, competitive advantage.
+		This following definition of Cloud Native is taken from AWS's website \cite{cloudnative}:
+
+		\textit{
+			`Cloud native is the software approach of building, deploying, and managing modern applications 
+			in cloud computing environments. Modern companies want to build highly scalable, flexible, and 
+			resilient applications that they can update quickly to meet customer demands. 
+			To do so, they use modern tools and techniques that inherently support application
+			development on cloud infrastructure. These cloud-native technologies support fast 
+			and frequent changes to applications without impacting service delivery, providing
+			adopters with an innovative, competitive advantage.'
+		}
 
 	\subsection{Scaling}
-		Scaling \cite{scaling} in cloud computing refers to the ability to increase or decrease IT resources as
-		needed to meet changing demand. Scalability is one of the hallmarks of the cloud and the primary driver 
-		of its exploding popularity with businesses. Scaling allows the businesses to pay only for the resources that
-		they truly need.
-		\begin{itemize}
-			\item \textbf{Vertical scaling:} (also referred to as “scaling up” or “scaling down”) 
-			You add or subtract power to an existing cloud server upgrading memory (RAM),
-			storage or processing power (CPU).
-			Usually this means that the scaling has an upper limit based on the capacity of the server
-			or machine being scaled; scaling beyond that often requires downtime.
-			\item \textbf{Horizontal scaling:} (also referred to as "scaling in" or "scaling out"), 
-			You add more resources like servers to your system to spread out the workload across machines, 
-			which in turn increases performance and storage capacity. 
-			Horizontal scaling is especially important for businesses with high availability services requiring 
-			minimal downtime.
-		\end{itemize}
+		The following explanation of scaling is taken from VMWare's website \cite{scaling}:
 
+		\textit{
+			`Scaling  in cloud computing refers to the ability to increase or decrease IT resources as
+			needed to meet changing demand. Scalability is one of the hallmarks of the cloud and the primary driver 
+			of its exploding popularity with businesses. Scaling allows the businesses to pay only for the resources that
+			they truly need.
+			\begin{itemize}
+				\item \textbf{Vertical scaling:} (also referred to as “scaling up” or “scaling down”) 
+				You add or subtract power to an existing cloud server upgrading memory (RAM),
+				storage or processing power (CPU).
+				Usually this means that the scaling has an upper limit based on the capacity of the server
+				or machine being scaled; scaling beyond that often requires downtime.
+				\item \textbf{Horizontal scaling:} (also referred to as "scaling in" or "scaling out"), 
+				You add more resources like servers to your system to spread out the workload across machines, 
+				which in turn increases performance and storage capacity. 
+				Horizontal scaling is especially important for businesses with high availability services requiring 
+				minimal downtime.'
+			\end{itemize}
+		}
 	\subsection{Load Balancing}
-		Load balancing \cite{loadbalancing} is the practice of distributing computational workloads between two or more computers. 
-		On the Internet, load balancing is often employed to divide network traffic among several servers. 
-		This reduces the strain on each server and makes the servers more efficient, speeding up performance and 
-		reducing latency. Load balancing is essential for most Internet applications to function properly. 
-		By dividing user requests among multiple servers, user wait time is vastly cut down. 
-		This results in a better user experience.
+		The following parts regarding load balancing are taken from Cloudflare at \cite{loadbalancing}:
 
-		Load balancing is handled by a tool or application called a load balancer. A load balancer can be 
-		either hardware-based or software-based. 
-		\begin{itemize}
-			\item \textbf{Hardware load balancers} require the installation of a 
-		dedicated load balancing device.
-			\item \textbf{Software-based load balancers} can run on a server, on a virtual machine, 
-		or in the cloud.
-		\end{itemize}
-		Content delivery networks (CDN) often include load balancing features.
-		When a request arrives from a user, the load balancer assigns the request to a given server, 
-		and this process repeats for each request. Load balancers determine which server should handle each request 
-		based on a number of different algorithms. These algorithms fall into two main categories: static and dynamic.
+		\textit{
+			`Load balancing \cite{loadbalancing} is the practice of distributing computational workloads between two or more computers. 
+			On the Internet, load balancing is often used for dividing network traffic among several servers. 
+			This reduces the strain on each server and makes the servers more efficient, speeding up performance and 
+			reducing latency. Load balancing is essential for most Internet applications to function properly. 
+			By dividing user requests among multiple servers, user wait time is vastly reduced. 
+			This results in a better user experience.'
+		}
 
+		\textit{
+			`Load balancing is handled by a tool or application called the load balancer. A load balancer can be 
+			either hardware-based or software-based. 
+			\begin{itemize}
+				\item \textbf{Hardware load balancers} require the installation of a 
+			dedicated load balancing device.
+				\item \textbf{Software-based load balancers} can run on a server, on a virtual machine, 
+			or in the cloud.
+			\end{itemize}
+			Content delivery networks (CDN) often include load balancing features.
+			When a request arrives from a user, the load balancer assigns the request to a given server, 
+			and this process repeats for each request. Load balancers determine which server should handle each request 
+			based on a number of different algorithms. These algorithms fall into two main categories: static and dynamic.'
+		}
 		\begin{itemize}
-			\item \textbf{Static load balancing} algorithms distribute workloads without taking into account the current 
+			\item \textit{\textbf{Static load balancing} algorithms distribute workloads without taking into account the current 
 			state of the system. A static load balancer will not be aware of which servers are performing 
 			slowly and which servers are not being used enough. 
-			Instead it assigns workloads based on a predetermined plan. 
+			Instead it assigns workloads based on a predetermined plan.}
 			
-			Static load balancing is quick to set up,
+			\textit{Static load balancing is quick to set up,
 			but can result in inefficiencies. Round robin DNS and client-side random load balancing are 
-			two common forms of static load balancing.
-			\item \textbf{Dynamic load balancing} algorithms take the current availability, workload, 
+			two common forms of static load balancing.}
+
+			\item \textit{\textbf{Dynamic load balancing} algorithms take the current availability, workload, 
 			and health of each server into account. 
 			They can shift traffic from overburdened or poorly performing servers to underutilized servers, 
 			keeping the distribution even and efficient. However, dynamic load balancing is more difficult 
 			to configure. A number of different factors play into server availability: 
-			the health and overall capacity of each server, the size of the tasks being distributed, and so on.
+			the health and overall capacity of each server, the size of the tasks being distributed, and so on.}
 
-			There are several types of dynamic load balancing algorithms, including least connection, weighted least connection, resource-based, and geolocation-based load balancing.
+			\textit{There are several types of dynamic load balancing algorithms, including least connection, weighted least connection, resource-based, and geolocation-based load balancing.}
 		\end{itemize}
 
 \section{Amazon-related cloud technologies}
 	\subsection{Amazon Web Services(AWS)}
-		Amazon Web Services (AWS) is the public cloud offerring by the parent company Amazon. AWS has a vast offering
+		Amazon Web Services (AWS) \cite{aws} is the public cloud offerring by the parent company Amazon. AWS has a vast offering
 		of services, which help its end-users manage the infrastructures needed to host their own applications, 
 		microservices, APIs and what not.
 		AWS services are delivered to customers via a network of AWS server farms located throughout the world.
+
+		The project uses Amazon Web Services for the infrastructure of Refinery.
 
 		In the following sections (2.14.2 - 2.14.6), I will go into detail what some of those services are and how
 		they can be beneficial for the users of those services.
@@ -300,36 +299,16 @@
 		and manage storage. Capacity can be added (upscale) to handle compute-heavy tasks, such as monthly or yearly processes,
 		or spikes in website traffic. When usage decreases, the capacity can be reduced (downscale) again.
 
-		An EC2 instance is a virtual server in the AWS Cloud. When an EC2 instance is launched, the instance type that the 
-		user specifies determines the hardware available to the instance. Each instance type offers a different balance of 
-		compute, memory, network, and storage resources. Amazon EC2 provides the following high-level features:
-		\begin{itemize}
-			\item \textbf{Instances:} Virtual servers.
-			\item \textbf{Amazon Machine Images (AMIs):} Preconfigured templates for the instances that package the components 
-			needed for the server (including the operating system and additional software).
-			\item \textbf{Instance types:} Various configurations of CPU, memory, storage, networking capacity, and graphics hardware for the instances.
-			\item \textbf{Amazon EBS volumes:} Persistent storage volumes for the user's data using Amazon Elastic Block Store (Amazon EBS).
-			\item \textbf{Instance store volumes:} Storage volumes for temporary data that is deleted when the user 
-			stops, hibernates, or terminates their instance.
-			\item \textbf{Key pairs:} Secure login information for user instances. AWS stores the public key and the user stores 
-			the private key in a secure place.
-			\item \textbf{Security groups:} A virtual firewall that allows users to specify the protocols, ports, and 
-			source IP ranges that can reach their instances, and the destination IP ranges to which their instances can connect. 
-		\end{itemize}
-
 	\subsection{Amazon Elastic Container Service (ECS)}
 		Amazon Elastic Container Service (Amazon ECS) \cite{ecs} is a fully managed container orchestration service that helps 
-		you easily deploy, manage, and scale containerized applications. As a fully managed service, Amazon ECS comes 
-		with AWS configuration and operational best practices built-in. It's integrated with both AWS and third-party tools, 
-		such as Amazon Elastic Container Registry and Docker. This integration makes it easier for teams to focus on 
-		building the applications, not the environment. You can run and scale your container workloads across AWS 
-		Regions in the cloud, and on-premises, without the complexity of managing a control plane.
+		the deployment, management, and scaling of containerized applications. It is integrated with both AWS and third-party tools, 
+		such as Amazon Elastic Container Registry and Docker. This integration makes it easier for users to focus on 
+		building the applications, not the environment. 
 
 		There are three main layers in Amazon ECS:
 		\begin{enumerate}
 			\item \textbf{Capacity:} The infrastructure where the users runs their containers. Options include Amazon EC2, 
-			AWS Fargate (a serverless, pay-as-you-go compute engine, where the server doesn't have to be managed for our service to run),
-			and On-prem virtual machines and servers (infrastructure outside of Amazon) 
+			AWS Fargate and On-prem virtual machines and servers (infrastructure outside of Amazon) 
 			\item \textbf{Controller:} The deployment and management of the applications that are run on the containers. The Amazon
 			ECS scheduler is the software that manages / controls the applications.
 			\item \textbf{Provisioning:} The tools used for interfacing with the ECS scheduler to deploy and manage the applications.
@@ -337,37 +316,18 @@
 			AWS Software Development Kits (SDKs).
 		\end{enumerate}
 
-	\subsection{Virtual Private Cloud (VPC)}
-		With Amazon Virtual Private Cloud (Amazon VPC) \cite{vpc}, you can launch AWS resources in a logically 
-		isolated virtual network that you've defined. This virtual network closely resembles a traditional network 
-		that you'd operate in your own data center, with the benefits of using the scalable infrastructure of AWS.
+		Amazaon ECS can be a valid option for the provisioning of Refinery's services. 
 
-		Features include:
-		\begin{itemize}
-			\item \textbf{Subnets:} A subnet is a range of IP addresses in your VPC. A subnet must reside in a single Availability Zone. 
-			After you add subnets, you can deploy AWS resources in your VPC.
-			\item \textbf{IP addressing:} You can assign IP addresses, both IPv4 and IPv6, to your VPCs and subnets. 
-			You can also bring your public IPv4 addresses and IPv6 GUA addresses to AWS and allocate them to resources in your VPC, 
-			such as EC2 instances, NAT gateways, and Network Load Balancers.
-			\item \textbf{Routing:} Use route tables to determine where network traffic from your subnet or gateway is directed.
-			\item \textbf{Gateways and endpoints:} A gateway connects your VPC to another network. For example, use an internet gateway 
-			to connect your VPC to the internet. Use a VPC endpoint to connect to AWS services privately, without the use of an 
-			internet gateway or NAT device.
-			\item \textbf{Peering connections:} Use a VPC peering connection to route traffic between the resources in two VPCs.
-			\item \textbf{Traffic Mirroring:} Copy network traffic from network interfaces and send it to security and 
-			monitoring appliances for deep packet inspection.
-			\item \textbf{Transit gateways:} Use a transit gateway, which acts as a central hub, to route traffic between your VPCs, 
-			VPN connections, and AWS Direct Connect connections.
-			\item \textbf{VPC Flow Logs:} A flow log captures information about the IP traffic going to and from network interfaces in your VPC.
-			\item \textbf{VPN connections:} Connect your VPCs to your on-premises networks using AWS Virtual Private Network (AWS VPN). 
-		\end{itemize}
+	\subsection{Virtual Private Cloud (VPC)}
+		With Amazon Virtual Private Cloud (Amazon VPC) \cite{vpc}, users can launch AWS resources in a logically 
+		isolated virtual network that is defined by the user. This virtual network closely resembles a traditional network 
+		that the user would operate, with the benefits of using the scalable infrastructure of AWS.
 
 	\subsection{Elastic Load Balancing (ELB)}
-		Elastic Load Balancing \cite{elb} automatically distributes your incoming traffic across multiple targets, 
-		such as EC2 instances, containers, and IP addresses, in one or more Availability Zones. 
+		Elastic Load Balancing \cite{elb} automatically distributes incoming traffic across multiple targets, 
+		such as EC2 instances, containers, and IP addresses. 
 		It monitors the health of its registered targets, and routes traffic only to the healthy targets. 
-		Elastic Load Balancing scales your load balancer as your incoming traffic changes over time. 
-		It can automatically scale to the vast majority of workloads.
+		Elastic Load Balancing scales load balancers as the incoming traffic changes over time. 
 
 		Elastic Load Balancing supports the following load balancers: 
 		\begin{itemize}
@@ -381,37 +341,32 @@
 			An Application Load Balancer \cite{elb} functions at the application layer, the seventh layer of the Open Systems Interconnection (OSI)
 			model. After the load balancer receives a request, it evaluates the listener rules in priority order to determine which 
 			rule to apply, and then selects a target from the target group for the rule action. 
-			You can configure listener rules to route requests to different target groups based on the content of the application 
-			traffic. Routing is performed independently for each target group, even when a target is registered with multiple target groups. 
-			You can configure the routing algorithm used at the target group level. 
-			The default routing algorithm is round robin; alternatively, you can specify the least outstanding requests routing algorithm.
+			Routing is performed independently for each target group, even when a target is registered with multiple target groups. 
+			Routing algorithm can be configured at the target group level. 
+			The default routing algorithm is round robin; alternatively, the least outstanding requests routing algorithm can be used aswell.
 
-			You can add and remove targets from your load balancer as your needs change, without disrupting the overall 
-			flow of requests to your application. Elastic Load Balancing scales your load balancer as traffic to your application changes over time. 
-			Elastic Load Balancing can scale to the vast majority of workloads automatically.
+			Health checks can be configured, which are used to monitor the health of the registered targets so that the 
+			load balancer can send requests only to the healthy targets within a target group.
 
-			You can configure health checks, which are used to monitor the health of the registered targets so that the 
-			load balancer can send requests only to the healthy targets.
+			The application load balancer can be utilized for the Refinery applications. This allows our scaling services (like the backend and 
+			the generator) to receive requests based on the set load balancing algorithm. The services should be setup as separate target groups.
 
 	\subsection{Application Auto Scaling}
 		Application Auto Scaling \cite{autoscale} is a web service for developers and system administrators 
 		who need a solution for automatically scaling their scalable resources for individual AWS services beyond Amazon EC2. 
 
-		Application Auto Scaling allows you to automatically scale your scalable resources according to conditions that you define.
-		\begin{itemize}
-			\item \textbf{Target tracking scaling} – Scale a resource based on a target value for a specific CloudWatch metric.
-			\item \textbf{Step scaling} – Scale a resource based on a set of scaling adjustments that vary based on the size of the alarm breach.
-			\item \textbf{Scheduled scaling} – Scale a resource one time only or on a recurring schedule.
-		\end{itemize}
+		Application Auto Scaling allows automatic scaling of scalable resources according to conditions that are defined.
+
+		The auto scaling is useful for the scaling of containerized Refinery services (backend, and generator service).
 
 \section{Containers}
 	Containerization \cite{container} is the packaging together of software code with all it’s necessary 
 	components like 
-	libraries, frameworks, and other dependencies so that they are isolated in their own "container."
+	libraries, frameworks, and other dependencies so that they are isolated in their own container.
 	
 	This is done so that the software or application within the container can be moved and run consistently 
 	in any environment and on any infrastructure, independent of that environment or infrastructure’s 
-	operating system. It’s basically a fully functional 
+	operating system. It is a fully functional 
 	and portable computing environment.
 
 	The "lightweight" or portability characteristic of containers comes from their ability to share 
@@ -419,33 +374,37 @@
 	each container and allowing the application to run the same on any infrastructure 
 	even within virtual machines (VMs).
 
-	Containerization and virtualization are similar in that they both allow for full isolation of 
-	applications so that they can be operational in multiple environments. Where the main differences 
-	lie are in size and portability (with containers being the more compact). 
-
 	Containers are often used to package single functions that perform specific tasks—known as a microservice. 
 	Microservices are the breaking up of the parts of an application into smaller, more specialized services. 
-	This allows developers to focus on working on a specific area of an application, without impacting 
-	the app’s overall performance. 
+
+	The services of the Refinery application should be developed with containerization in mind. This makes 
+	the distribution and deployment of the application much easier.
 
 	\subsection{Docker}
-	Docker is an open platform for developing, shipping, and running applications. \cite{docker}
-	Docker provides the ability to package and run an application in a loosely isolated environment 
-	called a container. The isolation and security lets you run many containers simultaneously 
-	on a given host.
+		Docker \cite{docker} is an open platform for developing, shipping, and running applications. 
+		Docker provides the ability to package and run an application in a loosely isolated environment 
+		called a container. The isolation and security lets you run many containers simultaneously 
+		on a given host.
 
-	Docker containers can be created by running docker images. Images are templates 
-	containing the read-only instructions needed 
-	to create the container running our application. To build an image, the user has to write a Dockerfile
-	where they specify all of the steps needed to build their image (like linking libraries, exposing ports, 
-	setting environment variables, etc.)
+		Docker containers can be created by running docker images. Images are templates 
+		containing the read-only instructions needed 
+		to create the container running our application. To build an image, the user has to write a Dockerfile
+		where they specify all of the steps needed to build their image (like linking libraries, exposing ports, 
+		setting environment variables, etc.)
 
-	The docker container is the running instance of the docker image. Those can be run by the use of the docker cli.
+		The docker container is the running instance of the docker image. Those can be run by the use of the docker cli.
+
+		The implemented Refinery services can be containerized via the use of Docker images. The images can be uploaded to the 
+		Docker Registry, providing easier distribution.
 
 
 	\subsection{Docker compose}
-	Docker Compose \cite{dockercompose} is a tool for defining and running multi-container applications. It is the key to unlocking a streamlined and efficient development and deployment experience.
+		Docker Compose \cite{dockercompose} is a tool for defining and running multi-container applications. 
+		It is the key to unlocking a streamlined and efficient development and deployment experience.
 
-	Compose simplifies the control of your entire application stack, making it easy to manage services, networks, and volumes in a single, comprehensible YAML configuration file. Then, with a single command, you create and start all the services from your configuration file.
+		Compose simplifies the control of the entire application stack, making it easy to manage services, 
+		networks, and volumes in a single, comprehensible YAML configuration file. 
+		With a command, all of the services from the configuration file can be started.
 
-	Compose works in all environments; production, staging, development, testing, as well as CI workflows.
+		Docker compose can be used for the local deployment of the containerized Refinery backend and generator services.
+
