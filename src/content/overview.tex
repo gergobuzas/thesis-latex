@@ -1,29 +1,27 @@
 \chapter{Overview} 
 	\label{overview}
-	The goal of the project is to improve the scalability of the Refinery web-application. 
+	The goal of the project is to examine how the scalability of the Refinery web-application could be improved. 
 	The scalability of an application is basically allowing our application to handle bigger loads and handle more simultaneous connections.
 	This can mean reducing the operating costs and / or having better response times for each requests that the users of the application make. 
 
 	As such, the current
 	infrastructure has to be understood, and only then can ways be found, how improvements can be made.
 
-	Scalability can be greatly improved via the modification of the backend architecture of an application, so that's naturally what
-	I'm going to describe in greater detail. 
+	Scalability can be greatly improved via the modification of the backend architecture of an application, so that is naturally what
+	I am going to describe in greater detail. 
 
 	After examining the current infrastructure and implementation of the graph generator, 
-	I'll go into detail about the different approaches and ideas of how the backend could be restructured,
+	I will go into detail about the different approaches and ideas of how the backend could be restructured,
 	so that we can achieve our goal in mind: improved scalability. 
 
-\section{Frontend}
+\section{Frontend} \label{overviewfrontend}
 	The frontend of the Refinery web application is implemented using the React library. As a result, most of it is written in Typescript.
-	As these are static websites, the production implementation is using Amazon's S3 buckets, as it provides a cheaper implementation
-	than Amazon's EC2. 
 	It basically works as a text editor, where the users can define the rules for their graph models, and see whether
 	their rules are semantically / syntactically correct. If so, they can generate a model based on their defined rules
-	via the press of a button, which sends the states of the text editor to the backend.
+	via the press of a button, which sends the states of the text editor to the backend. The generation results 
+	are shown on the frontend.
 
-\section{Backend}
-
+\section{Backend} \label{overviewbackend}
 	The backend is a Java Jetty application. The clients connect to this server via WebSocket. 
 	In the current implementation,
 	this connection is used to send live information to the editor server, 
@@ -45,7 +43,7 @@
 	This inital update contains an example model, which also showcases for the user, how the language can be used
 	for defining a graph problem. 
 	
-	After this initialization, only differences (e.g.: deltaText) are sent to the backend, so that 
+	After this initialization, only differences are sent to the backend, so that 
 	the edits made by the user can also be applied to the state on the backend session. 
 	After each user edit/modification, the
 	validity of the model is verified by the server: both semantically and syntactically, and sent back to the client.
@@ -54,8 +52,9 @@
 	is kept alive via the use of the ping and pong messages of WebSocket.
 
 	If the user finished the creation of the graph model and the generate button is pressed 
-	on the client-side, a message containing the "modelGeneration" service request is sent to the server 
-	The server then proceeds to generate the model based on the user input.
+	on the client-side, a message containing the generation service request is sent to the server 
+	The server then proceeds to generate the model based on the user input and sends the belonging 
+	states, results and metadata to the client.
 
 	This model generation may take a significant amount of time and many computing resources. 
 	If vast amount of users were to use 
@@ -73,14 +72,22 @@
 Now that we have an idea, of what we have to perform to enhance the scalability of Refinery, we have to set some requirements for the
 restructuring of the backend architecture and for the creation of the GeneratorServer service. 
 
-The requirements for the restructuring of Refinary should be as follows:
+\textbf{The requirements for the restructuring of Refinary should be as follows:}
 \begin{enumerate}
-        \item The backend of the application should be scalable 
-        \item The client should be able to cancel the model generation
-        \item The client must be able to show the state of the model generation  
-        \item There must be a timeout set for the model generation
-		\item (Optional) The implementation should allow the creation of other type of cliens,
-		other than web browser-based clients
-		\item (Optional) The editor and generator should be deployed together
+        \item \textbf{The backend of the application should be scalable.} This should be done, so that under increased usage 
+		the user experience should not be compromised.
+        \item \textbf{The client should be able to cancel the model generation.} If the user reconsiders their need of the 
+		generated model, it should be a possibility that they can cancel it. Furthermore, canceling a not needed model generation 
+		improves resource usages (and by this, the scalability aswell).
+        \item \textbf{The client must be able to show the state of the model generation.} By this, the client-side of the application can showcase
+        where the state of the model generation is at. Potential errors during the generation can also be showcased via the use of the state representation.
+        \item \textbf{There must be a timeout set for the model generation.} During the unlikely event of a bug in the generation implementation, 
+		a timeout can limit the duration of the model generation process. This also limits heavy resource usage durations. Furthermore, if the connection would be 
+		permanently lost with the frontend during the generation, the timeout could stop the no longer needed generation.
+		\item \textbf{(Optional) The implementation should allow the creation of other type of cliens other than web browser-based clients.} In the future
+		the application could be extended to run as a separate service. The model generations could also be used by other developers, leveraging an API for the
+		generations.
+		\item \textbf{(Optional) The editor and generator should be deployed together.} This should improve the overall development experience of the application.
+		By deploying the two services together, the live infrastructure can be simulated on the local environment.
 \end{enumerate}
 
