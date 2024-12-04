@@ -6,7 +6,7 @@ moved to a separate server. In this section, I'll go into detail about the diffe
 the planning phase. Last, but not least, I'll explain, why I chose the WebSocket implementation afterall carefully researching
 my possiblilites.
 
-\subsection{REST API}
+\subsection{REST API}\label{restconsiderations}
 The first architecture that came to my mind, was a REST API. Using the Spring boot framework would allow for fast development
 of our REST API. The state of the partial modelling editor would be sent to the REST API as a POST request, and the result
 would be returned as a Json, which the client would parse, and output the model accordingly. However, it was still in question
@@ -19,13 +19,22 @@ how the generated model should be returned to the client.
 		As such, the purpose of a REST API would be invalidated / slow.
 		\item \textbf{Long polling:}
 		Here, the REST API would respond immediately with a "Starting generator service" message, had it received a request.
+		The REST API would start and perform the generation, while the backend would constantly try to fetch the results from the API.
+		An example implementation can be seen in \ref{longpollingimage}
+		\begin{figure}[h!]
+			\begin{center}
+				\includegraphics[scale=0.5]{include/imgs/rest_long_poll.png}
+				\caption{Possible long polling implementation of generator REST API}
+				\label{longpollingimage}
+			\end{center}
+		\end{figure}
 \end{itemize}
 The limitation of both implementations is the fact that the request cannot be cancelled from the client side. As that is one 
 of the main requirements of the architectural restructuring, this is a fact that cannot be looked over, so I concluded that 
 another architecture should be looked at for the implementation.
 
 
-\subsection{Remote Procedure Call}
+\subsection{Remote Procedure Call} \label{rpcconsiderations}
 	The second architecture that came up during the planning phase was Remote Procedure Call (RPC). The generation is pretty much
 	a procedure, so calling it remotely sounded like a wise choice. 
 
