@@ -19,12 +19,12 @@
 	The frontend is able to show the state of the model generation. The states are sent by the generator server's executor via
 	the open session to the clients.
 
-	There is a timeout set for both the backend generator client and the generator server. This insures that even is some kind of 
+	There is a timeout set for both the backend generator client and the generator server. This insures that even if some kind of 
 	unexpected operation happens, the generation won't be stalled and use resources in a locked state.
 
 	The editor and the generator can be deployed together. During development phase, the backend and the generator server can be 
 	deployed together, via the gradle "run" task. This starts running both the generator microservice and the backend locally.
-	Other than that a docker compose file was written, so that the containerized applications can be run locally.
+	Other than that a docker compose (\ref{Docker images}) file was written, so that the containerized applications can be run locally.
 
 	One optional requirement wasn't satisfied by this implementation. The creation of other type of clients other than the browser
 	based one is possible, but tedious. My testing python script basically acts as a different client, but it replicates the WebSocket
@@ -39,8 +39,6 @@
 
 	\section{Benchmarks} \label{Benchmarks}
 		\subsection{Test setup}
-		I wanted to test, whether the response times of the deployed application really improved with the modifications.
-
 		I wrote a Python script replicating the WebSocket messages of the Refinery frontend. First it creates the connection
 		towards the server. Then sends the initial update
 		of the example text, that can be seen in the editor at start. Then a generation request is sent to the backend and the start time of the generation
@@ -63,11 +61,11 @@
 			The network speeds are not constant and can be very volatile during the period of the test. The upload and download speeds of my computer, running the 
 			python test client can also make some test data dirty / invalid.  Repeated testing should also solve this threat.
 
-			The load balancer for the backend allows accepts traffic from anything on the public internet. Although the chance of it is really low
+			The load balancer for the backend allows traffic from anything on the public internet. Although the chance of it is really low
 			but denial of service attacks migth invalidate the results of the test. I tried to lower the chance of this happening, by applying a security group
 			to the load balancer for the duration of the test. With this, the load balancer would only allow inbound traffic from my computer's public ip address.
-			Obviously this address is not only assigned for my computer, but I think this significantly lowers the amount of connections, that might try to tinker
-			with our server.
+			Obviously this address is not only assigned for my computer, but I think this significantly lowers the amount of connections, that might try to connect 
+			to the backend server.
 
 		\subsection{Results}
 		\subsubsection{First test} \label{firsttest}

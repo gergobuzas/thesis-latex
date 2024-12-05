@@ -448,38 +448,21 @@
 		the server instances, by sending a curl request to the "/healthcheck" path of the generator server.
 
 	\subsection{Application Load Balancer and NAT} \label{ALB NAT}
-		Just when I thought that the load balancer issues were solved in \ref{healthcheck}, more issues arose. I modified my frontend,
-		so that it would communicate with my own AWS deployed backend infrastructure. However, generation requests still would not 
-		work, with the requests resulting in a timeout, upon failing to connect with the generator microservice.
+		During the deployment process, I faced persistent issues with the backend failing to connect to the generator microservice 
+		through the Application Load Balancer (ALB), resulting in request timeouts. Initially, I suspected an Access Control List (ACL) 
+		issue within the VPC hosting the infrastructure. To rule this out, I configured the ACL to allow all inbound and outbound traffic 
+		and ensured Security Group policies were set to restrict access to the generator microservice only from the backend server. 
+		Despite these changes, the issue persisted, with the backend unable to connect to the ALB's DNS.
 
-		I initallity thought this boils down to some kind of Access Control List (ACL) issue. I checked the ACL policies for the VPC, where all
-		of my backend infrastructure was running. I allowed all inbound and outbound traffic in the VPC, just to insure that the VPC ACL policies
-		aren't causing the issue. I also knew, that even though the VPC allows all traffic from the public internet, these policies can be overwritten
-		with the usage of Security Groups, so that I can deny traffic from the public internet towards my generator microservice, and only allow
-		inbound traffic coming form my backend server. To my surprise, this didn't resolve the issue either, the backend still couldn't connect
-		with the generator server via the DNS of the ALB.
+		To further investigate, I accessed the EC2 instances running the ECS tasks by configuring an SSH key pair. 
+		Using tools like curl and ping, I confirmed the EC2 instance could communicate with the ALB, including receiving expected responses 
+		from the generator microservice's health check endpoint (\ref{healthcheck}). However, when testing connectivity from within the container 
+		using a statically compiled curl binary, no response was received from the ALB.
 
-		To insure, that it is not an ACL related issue, I set both the ALB's and the services' security groups to allow all incoming and outbound traffic.
-		I was gifted with the same error messages on both the backend task logs
-		and on my frontend: connection couldn't be made to the generator microservice.
-
-		Next I tried to check whether the EC2 instance, running the docker container (task) could reach the load balancer. I set up a 
-		key pair in the AWS Management Console, and assigned it to the auto scaling group of the EC2 instances. By forcing a redeploy of my 
-		backend service, I could finally SSH into the EC2 instances running the docker containers. By installing curl and ping on the instance
-		I tried debugging network connectivity issues. The EC2 instance could send ICMP messages to the ALB, and it would respond. By sending
-		curl messages to the health check path, that I created for the issue described in \ref{healthcheck}, the ALB would forward the traffic
-		towards the generator server. The "Server works" plain text response was received by my EC2 instance running the backend.
-
-		Lastly, I wanted to check, whether the container running inside the EC2 instance can reach the generator server. The task was 
-		setup to run with the network mode awsvpc, so I assumed, that it should be able to reach the load balancer, as they are within the 
-		same virtual private cloud. Since containers don't have anything installed, that is unnecessary for the running of the application,
-		I copied a compiled static curl application, made for x86\_64 compatible computers. Running this static curl, I sent a GET request
-		to the ALB, requesting the "/healthcheck" path, however, no response was received.
-
-		Upon further research, I found out that ECS tasks (the containers) are not provided a public ip address by Amazon (only a private ipv4 addess). 
-		The ALB is only granted a public address by AWS, and it cannot be given a private one. AWS doesn't perform Network Address Translation (NAT)
-		for the endpoints within a Virtual Private Cloud, so I had to find a way, to perform the address translation, between the public and private 
-		addresses.
+		Through further research, I identified the root cause: ECS tasks using the awsvpc network mode are assigned private IP addresses, 
+		while the ALB has only a public IP address. Since AWS does not perform Network Address Translation (NAT) within the VPC, 
+		the ECS tasks could not directly reach the public ALB. This required implementing a solution to perform the necessary address translation, 
+		ensuring proper communication between the backend and the generator microservice.
 
 		\begin{figure}[h!]
 			\begin{center}
@@ -488,18 +471,15 @@
 				\label{infrafinal}
 			\end{center}
 		\end{figure}
-		My two choices were either the setup of a Network Load Balancer (NLB), or a Network Address Translation (NAT) gateway. 
-		
-		The NLB uses the same target group methodology the
-		ALB used, however NLBs support the use of private ipv4 addresses. I can set the NLB's target group to be the Application Load Balancer 
-		with it's public address. This way the Network Load Balancer would act as a NAT gateway for the backend tasks.
 
-		The NAT gateway would allow us to connect the services in public and private subnets, and would provide future extensibility, if more 
-		features / tasks were to be added (even if some of them were not running in AWS).
+		I faced two options to address the public-private IP connectivity issue: setting up a Network Load Balancer (NLB) or a Network Address Translation (NAT) gateway.
 
-		I decided to go with the Network Load Balancer, as the hourly rate of a NAT gateway is more expensive, than the hourly rate of a 
-		Network Load Balancer \cite{natprice} \cite{nlbprice}. The hourly rate of a NAT gateway is \$0.046 dollars. The hourly rate of 
-		the NLB is calculated more complicatedly. However, based on the example calculations provided on the AWS website (\cite{nlbprice}),
-		with lower traffic the hourly rate would come down to nearly half of the price of the NAT gateway. I had to modify the task 
-		configuration of the backend: I modified the "REFINERY\_GENERATOR\_WS\_HOST" environment variable to point to the DNS of the 
-		Network Load Balancer. The final implementation of the infrastructure can be seen in figure \ref{infrafinal}.
+		The NLB, like the ALB, operates using target groups but supports private IPv4 addresses. 
+		By configuring the NLB to use the ALB’s public IP as a target, the NLB effectively serves as a NAT solution, enabling private ECS tasks to communicate with the ALB. 
+		Alternatively, the NAT gateway would facilitate communication between services across public and private subnets and provide greater flexibility 
+		for future infrastructure expansions, even outside AWS.
+
+		I chose the NLB due to its lower cost. The NAT gateway has a fixed hourly rate of \$0.046 (\cite{natprice}), whereas the NLB’s cost is traffic-dependent (\cite{nlbprice}). 
+		Based on AWS’s pricing examples, the NLB was projected to cost nearly half as much under lower traffic conditions. 
+		To finalize the setup, I updated the backend task configuration to point the REFINERY\_GENERATOR\_WS\_HOST environment variable to the NLB's DNS. 
+		The completed infrastructure setup is illustrated in Figure \ref{infrafinal}.
