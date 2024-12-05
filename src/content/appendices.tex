@@ -10,23 +10,27 @@
 %\numberwithin{tabular}{section}
 
 %----------------------------------------------------------------------------
-\section{A TeXstudio felülete}
+\section{Starting Refinery backend} \label{startingbackenduml}
 %----------------------------------------------------------------------------
-\begin{figure}[!ht]
-\centering
-\includegraphics[width=150mm, keepaspectratio]{figures/TeXstudio.png}
-\caption{A TeXstudio \LaTeX-szerkesztő.} 
+\begin{figure}[h!]
+		\includegraphics[scale=0.3]{include/imgs/backendUML.png}
+		\caption{UML class diagram of the backend architecture}
+		\label{backendstarteruml}
 \end{figure}
 
 %----------------------------------------------------------------------------
-\clearpage\section{Válasz az ,,Élet, a világmindenség, meg minden'' kérdésére}
+\clearpage\section{Generation Client}
 %----------------------------------------------------------------------------
-A Pitagorasz-tételből levezetve
-\begin{align}
-c^2=a^2+b^2=42.
-\end{align}
-A Faraday-indukciós törvényből levezetve
-\begin{align}
-\rot E=-\frac{dB}{dt}\hspace{1cm}\longrightarrow \hspace{1cm}
-U_i=\oint\limits_\mathbf{L}{\mathbf{E}\mathbf{dl}}=-\frac{d}{dt}\int\limits_A{\mathbf{B}\mathbf{da}}=42.
-\end{align}
+\begin{figure}[h!]
+		\includegraphics[scale=0.35]{include/imgs/generation_client_UML.png}
+		\caption{UML class diagram of the generation client part of the backend}
+		\label{backendclientuml}
+\end{figure}
+
+\clearpage\section{Generator Server}
+%----------------------------------------------------------------------------
+\begin{figure}[h!]
+		\includegraphics[scale=0.5]{include/imgs/generator_server_UML.png}
+		\caption{UML class diagram of the generator server}
+		\label{generatorserveruml}
+\end{figure}

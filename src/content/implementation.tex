@@ -1,11 +1,11 @@
 \chapter{Implementation} \label{Implementation}
 
-	This chapter delves into the implementation of key components that form the backbone of communication with the generator microservice, 
-	which is responsible for handling model generation requests in Refinery's architecture.
-
+	This chapter delves into the implementation of the planned architecture defined in section \ref{archdecision}.
 	First I'll introduce the starting point of the project.
 	Then I'll go into detail about how the backend creates a client, which communicates with the generator microservice. Finally I'll go into detail
 	regarding the inner workings of the generator server.
+
+	The starting backend's class diagram can be found in the appendix at \ref{startingbackenduml}.
 
 	\section{Starting point} \label{Starting point}
 		First, I will introduce the starting point of the project, so we get an overview, of how the backend initially worked regarding the model
@@ -37,7 +37,7 @@
 					\item The worker is started, as well as the resource heavy generation process. 
 					The worker is started on a background thread. 
 					The thread pool of for the generation workers can be configured via the 
-					\textit{REFINERY\_MODEL\_GENERATION\_THREAD\_COUNT} environment variable.
+					\textit{REFINERY\_MODEL\_GENERATION\_THREAD\_COUNT} \cite{generationthread} environment variable.
 				\end{enumerate}
 				\item{\textbf{Cancellation Mechanism:}}
 				During this process listed above, the service interacts with the document’s \textit{ModelGenerationManager} to monitor the worker's activity.
@@ -77,8 +77,6 @@
 			This implementation effectively delegates computationally intensive tasks, trying to minimize 
 			the burden on client communication.
 
-		\textbf{TODO!!! INSERT AN IMAGE OF AN UML DIAGRAM OF THE STARTING APPLICATION}
-
 	\section{Generator Client} \label{Generator Client}
 			Now that the deployed implementation has been been described, we can restructure our application, so that the 
 			model generation is done via the generation microservice.
@@ -90,6 +88,8 @@
 			This comes in handy, when implementing our client for communication with
 			the generator server. We have to implement a client, which communicates generation requests towards the generator server,
 			and upon completion, receives such generation results.
+
+			The implemented client's UML class diagram, alongside the modifications to the backend can be seen in appendix \ref{backendclientuml}.
 
 			\subsection{GeneratorWebSocketEndpoint}
 			The client-side component responsible for sending generation requests and handling responses is implemented as the GeneratorWebSocketEndpoint class,
@@ -128,7 +128,7 @@
 				The queues are accessed with timeout constraints to prevent indefinite blocking during retrieval. The timeout is set up by the class'
 				timeout variable. 
 				
-				The LinkedBlockingQueue allowed the Jetty API's @WebSocketText annotated onText method, to put the received generation
+				The LinkedBlockingQueue allowed the onText method, to put the received generation
 				results into the queue, while the client is waiting for the results to arrive from the server. As soon as an element is put into the queue
 				it can be popped from it. This way our code is safely waiting for the results
 				to arrive from the server and no concurrency issues can arise. As I have already mentioned, each generation request instantiates a new
@@ -195,7 +195,6 @@
 
 				The interaction between the GeneratorWebSocketEndpoint and the ModelRemoteGenerationWorker 
 				showcases how client-side operations and backend service orchestration are seamlessly integrated to ensure efficient, scalable, and reliable processing.
-				The 
 
 			\subsubsection{Impact}
 				By integrating remote model generation, this implementation reduces the computational load on the backend server, 
@@ -211,7 +210,9 @@
 		is necessary for a generation to happen, in a multithreaded way, on our microservice. It is basically the implementation of the ModelGenerationWorker
 		on a separate server.
 
-		\subsection{GeneratorServerEndpoint} \label{GeneratorServerEndpoint}
+		The UML class diagram of the Generator Server can be found in the Appendix at \ref{generatorserveruml}.
+
+		\subsection{GeneratorServerEndpoint} \label{GeneratorServerEndpoint}.
 			The GeneratorServerEndpoint is a WebSocket server endpoint that facilitates communication between remote clients 
 			and the backend for model generation requests. This class plays a crucial role in enabling real-time, 
 			bidirectional communication, supporting features like generation request handling, cancellation, and client disconnection.
@@ -263,7 +264,7 @@
 
 			New generation requests are created, initialized and started on separate threads. They are then added to the previously mentioned hashmap.
 
-			\label{servercanceldispatcher}Ongoing tasks can be cancelled via the UUID of the generation. As the hashmap stores these generation tasks identified by their UUID, it is fairly easy to do.
+			\label{servercanceldispatcher}Ongoing tasks can be cancelled via the UUID of the generation. As the hashmap stores these generation tasks identified by their UUID, it is fairly easy to do so.
 
 			Once a client has disconnected, the belonging task is cancelled, if not finished yet. The said task is removed from the hashmap. The UUID identification is 
 			useful here aswell.
@@ -289,7 +290,7 @@
 			\begin{itemize}
 				\item \textbf{Initialization:} Before starting, it initializes the problem by loading the problem description, random seed, and WebSocket session details. These were
 				received by the GeneratorServerEndpoint over WebSocket, and are given to an executor object by the ModelGeneratorDispatcher.
-				\item \textbf{Task Execution (in run()):} The class handles the execution of the model generation. This is done in the exact same way, as it was done previously at the local ModelGenerationWorker.
+				\item \textbf{Task Execution:} The class handles the execution of the model generation. This is done in the exact same way, as it was done previously at the local ModelGenerationWorker.
 				\item \textbf{Client communication:} By getting an open WebSocket session, the class instance can send generation state results, metadata and errors to the clients.
 				\item \label{serverexecutorcancel}\textbf{Cancellation support:}The task can be interrupted or canceled at any point, ensuring that unnecessary processing is avoided. This is especially useful for timeout scenarios or user-initiated cancellations.
 			\end{itemize}
@@ -305,81 +306,58 @@
 		processes model generation requests. It listens on a configurable port, defaulting to 1314 
 		unless overridden by the \textit{REFINERY\_GENERATOR\_WS\_PORT} environment variable. 
 		
-		The class sets up a Jetty server, configures a ServletContextHandler for managing requests and sessions, 
-		and integrates WebSocket support through JettyWebSocketServletContainerInitializer.
-
-		The GeneratorServerInitServlet servlet is registered for handling WebSocket communication.
-		This basically just registers the GeneratorServerEndpoint.
+		The class sets up a Jetty server, running the implemented GeneratorServerEndpoint (\ref{GeneratorServerEndpoint}).
 		Once everything is configured, the server is started to handle incoming requests. 
 		This class essentially establishes the server infrastructure for the application.
 
-		\textbf{TODO!!!! A NICE IMAGE ABOUT THE GENERATOR SERVER ARCHITECTURE}
-
 	\section{Containerization}\label{Containerization}
-		Now that our application was running succesfully, with both the basic backend and the generator server working together in this 
-		distributed architecture, came the containerization. 
 		The new generator microservice was added 
-		to the "run" task of the backend gradle project, and as such, the workings of the application could be tested locally. 
+		to the "run" task of the backend gradle project, and as such, the workings of the application could be tested locally in a manual fashion. 
 		
-		Containerization was the next step in 
-		updating our application. Containers help with the distribution and deployment of an application, so it was logical to handle this task as the next challenge.
-		For the creation of the docker images some shell scripts were created. In this section, I will describe how those scripts handle the process.
+		Containerization (\ref{backgcontainer}) was the next step in 
+		updating our application. 
 
-		Keep in mind, that even before the restructuring, the build pipeline already existed. My main task was integrating the generator server docker image creation
-		into these available scripts of the pipeline. I modified the prepare\_context.sh and the docker-bake.hcl files, and created a new file for the generator server
-		image creation called Dockerfile.generator.
+		Even before the restructuring, the build pipeline already existed. My main task was integrating the generator server docker image creation
+		into these available scripts of the pipeline. 
 
 		\subsection{Preparation scripts}\label{Preparation scripts}
-			The build.sh is the entrypoint to the building pipeline. First it calls a gradle build process, which builds all of our distributed projects 
-			(like the basic backend
-			and the newly created generator server projects), and returns us TAR archives of the projects' compiled dependencies and used classes.
-			Then the prepare\_context.sh and bake.sh scripts are called.
+			The process begins with a build script that compiles the project's distributed components, such as the backend and generator microservices, into portable archives. 
+			This is done via the use of Gradle (\ref{backgrgradle}).
 
-			The prepare\_context.sh script organizes and optimizes build artifacts for Docker containerization. 
-			It extracts the distribution archives, dissecting them into different distributed projects (like the backend and the generator), cleans up existing artifacts, 
-			and separates application-specific JARs from shared dependencies. As a result common dependencies are deduplicated, and placed inside a common libs directory. 
-			CPU architecture-specific JARs are placed in separate directories for AMD64 and ARM64 architectures. 
-			This helps the container supports multi-architecture builds.
-			Finally, all files are organized into a context directory for Docker image creation. The temporary distribution folders are removed.
+			One script organizes and optimizes the build outputs, ensuring shared dependencies are deduplicated and arranged for efficient reuse. 
+			It also prepares architecture-specific resources to support multi-architecture Docker builds, arranging all necessary files into a structured context for image creation.
+			I had to modify this script, so that it also handles the same process for the newly created generator server's (\ref{Generator Server}) archives.
 
-			The bake.sh script builds and optionally pushes Docker images for the Refinery project using Docker Buildx and a docker-bake.hcl file. 
-			It works in conjunction with a multi-stage Docker build process that is optimized for multiple architectures (x86\_64 and ARM64).
-
-			The bake.sh script begins by retrieving the project version using get\_version.sh, which is exported as the REFINERY\_VERSION environment variable. 
-			It also sets the REFINERY\_PUSH variable to false by default, allowing the user to control whether images are pushed to a container registry. 
-			Then the script runs the docker buildx bake command with the docker-bake.hcl configuration file, 
-			passing any additional arguments.
-
+			Finally, a dedicated script builds and optionally pushes Docker images using a multi-stage build configuration. 
+			This configuration leverages tools like Docker Buildx and supports deployment across different architectures, ensuring compatibility. 
 
 		\subsection{Docker images}\label{Docker images}
-			The docker-bake.hcl specifies a group of targets (like the backend and the generator) and individual build configurations for each target. 
+			The project utilizes a structured and reusable approach to Docker (\ref{backgdocker}) image creation, leveraging a common base image and architecture-specific 
+			optimizations to support multi-architecture compatibility.
 
-			The targets share a common base image defined in Dockerfile.base, which includes a slimmed-down JRE. 
-			Architecture-specific dependencies are added as separate layers for AMD64 and ARM64, allowing efficient multi-architecture builds. 
-			The targets specify platform compatibility, output configurations (including image naming and optional pushing), 
-			and build contexts, referencing the base image.
+			A configuration file specifies the group of targets (like the base, backend and generator) and individual build configurations for each target. 
+			These targets are the created docker images.
 
-			The Dockerfile.generator builds the generator image in stages, layering application-specific dependencies, startup scripts, 
-			and JAR files on top of the base image defined in Dockerfile.base. It's implementation was heavily inspired by the Dockerfile.web backend image. 
-			For the container, architecture-specific startup scripts and application binaries are added, 
-			followed by application JARs. The final image is configured with environment variables (like the host and port for the server),
-			a working directory, exposed ports for listening and an entry point to run the refinery-generator-server application.
+			These targets share a lightweight base image that includes essential runtime dependencies. 
+			Each target builds on this foundation, adding service-specific layers such as dependencies, binaries, and configuration files.
 
-			The finished images were pushed to the Docker Hub registry for my account. The public repository containing the images (backend,
-			generator) can be accessible by anyone, and came in handy for the AWS deployment.
+			I implemented the Dockerfile.generator to containerize the generator service efficiently. It builds the service using a multi-stage process, 
+			layering runtime dependencies, application files, and configuration (like environment variables and exposed ports). 
+			It uses the base image as its starting point.
 
-		TODO!!!!! IMAGE OF THE BUILD PIPELINE: Start->build.sh->gradle->preparecontext->docker bake
+			I also created a Docker Compose (\ref{backgdockercompose}) file for the local deployment of the application. Via this, the manual testing of the 
+			created application docker images can be done. Before deploying to the production infrastructure, this can add an extra layer of ensuring proper workings.
+
+			The finished images were pushed to the Docker Hub registry. The public repository containing the images (backend,
+			generator) can be accessible by anyone, and are needed for the AWS deployment.
+
 
 	\section{Deploying on AWS} \label{awsdeploy}
-		As the docker images, desribed in section \ref{Docker images} were pushed to the remote Docker Hub registry, it was ready to be deployed on the AWS infrastructure, the 
-		same way it was planned in section \ref{awsdecision}.
+		In this section I will describe the deployment of the modified Refinery backend and the Generator microservice. The deployment will be 
+		done according to the plan setup in \ref{awsdecision}.
 
-		I didn't want to deploy my project on the production AWS account, as asking for a user account with the appropriate access rights for the
-		infrastructure might be a problem. Furthermore, it might pose a security risk to the production environment and even possible downtimes, if I
-		were to make some mistakes during the setup of my environment.
-
-		I registered a new AWS account with my own private email address. Luckily, Amazon provides a free-tier account for starters, where 
-		I could deploy my application with virtually no associated costs. I used the AWS Management Console, which is the web GUI for 
+		I registered a new AWS account with my own private email address.
+		For the creation of the infrastructure I used the AWS Management Console, which is the web GUI for 
 		managing our AWS infrastructure.
 
 		\subsection{Task definitions} \label{awstasks}
@@ -396,7 +374,7 @@
 			generator microservice deployment (\ref{healthcheck}).
 
 		\subsection{Service definitions} \label{awsservices}
-			Then I created a refinery cluster, with services running the defined tasks. The services are within an EC2 auto scaling group. 
+			I created a refinery cluster, with services running the defined tasks in \ref{awstasks}. The services are within an EC2 auto scaling group. 
 			This allows us to scale our container instances, if they are heavily used, and the resource usage is over a threshold.
 			For this I set up two treshholds:
 			\begin{itemize}
@@ -418,23 +396,27 @@
 
 	\section{Challenges during the implementation} \label{challenges}
 	\subsection{Resource usage of development}
-		The very first challenge that came up during the implementation was how heavy the resource usage of the project was.
-		I wanted to develop on the Linux operating system, via the use of Windows Subsystem for Linux (WSL). I wanted to use linux
-		because I could already see, that the most scripts for building had the extension "sh", which indicates a UNIX shell script.
-		Windows (PowerShell or CMD) does not support those by default, hence why WSL was needed.
+		I wanted to develop on the Linux operating system, via the use of Windows Subsystem for Linux (WSL). WSL was needed because 
+		of the build scripts, which were implemented for UNIX shells.
 
-		When I initially opened the Refinery gradle project via a remote connection to my WSL, I was given an unwelcome suprise. The resource usage 
-		for the gradle project indexing was incredible. My 8-core Ryzen 7 CPU was sitting at around 70\%  usage, alongside 
+		When I initially opened the Refinery gradle project via a remote connection to my WSL the resource usage 
+		for the gradle project indexing was huge. The 8-core Ryzen 7 CPU was sitting at around 70\%  usage, alongside 
 		16 gigabytes of my system memory being 92-99\% occupied. 
 		
-		The initial indexing of the Gradle project took around 45-60 minutes. During that time, the computer was pretty much unusable, as all of the resources
-		were allocated for the gradle indexing task. However, to my surprise, even upon completion the resource usages didn't improve. The same amount of RAM
-		was used by the WSL and there was no sign of it freeing up. 
+		The initial indexing of the Gradle project took around 45-60 minutes. Even upon completion the resource usages didn't improve. 
+		The same amount of RAM
+		was used by the WSL and it would not become lower. 
 
-		TODO insert image of CPU usage
+		\begin{figure}[h!]
+			\begin{center}
+				\includegraphics[scale=0.35]{include/imgs/res_usage.jpg}
+				\caption{Resource usage during developing on WSL}
+				\label{resourceusagewsl}
+			\end{center}
+		\end{figure}
 
 		As a result of this, I have given up on the development using WSL. I developed the application on Windows, while using WSL only for the
-		dockerization (\ref{Containerization}) of the finished applications (as that was needed for the running of the shell scripts).
+		dockerization (\ref{Containerization}) of the finished applications.
 
 	\subsection{Deduplification for docker images}
 		The initial context preparation in section \ref{Preparation scripts} was implemented for two different distributions (the basic backend 
@@ -462,7 +444,7 @@
 		As a workaround, I created a servlet called HealthCheckServlet, which responds to HTTP get requests at the path "/healthcheck",
 		by returning a "Server works!" plain text.
 
-		I added the servlet to the ServletContextHandler of the ServerLauncher class. By this, the load balancer can ensure the healthy state of the 
+		I added the servlet to the ServerLauncher of the generator microservice. By this, the load balancer can ensure the healthy state of the 
 		the server instances, by sending a curl request to the "/healthcheck" path of the generator server.
 
 	\subsection{Application Load Balancer and NAT} \label{ALB NAT}
@@ -499,6 +481,13 @@
 		for the endpoints within a Virtual Private Cloud, so I had to find a way, to perform the address translation, between the public and private 
 		addresses.
 
+		\begin{figure}[h!]
+			\begin{center}
+				\includegraphics[scale=0.35]{include/imgs/final_aws_infra.png}
+				\caption{Final deployed infrastructure}
+				\label{infrafinal}
+			\end{center}
+		\end{figure}
 		My two choices were either the setup of a Network Load Balancer (NLB), or a Network Address Translation (NAT) gateway. 
 		
 		The NLB uses the same target group methodology the
@@ -513,6 +502,4 @@
 		the NLB is calculated more complicatedly. However, based on the example calculations provided on the AWS website (\cite{nlbprice}),
 		with lower traffic the hourly rate would come down to nearly half of the price of the NAT gateway. I had to modify the task 
 		configuration of the backend: I modified the "REFINERY\_GENERATOR\_WS\_HOST" environment variable to point to the DNS of the 
-		Network Load Balancer. 
-
-		TODO!!! IMAGE OF THE FINAL Infrastructure!!!!!
+		Network Load Balancer. The final implementation of the infrastructure can be seen in figure \ref{infrafinal}.
