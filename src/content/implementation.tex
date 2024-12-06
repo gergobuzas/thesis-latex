@@ -1,8 +1,8 @@
 \chapter{Implementation} \label{Implementation}
 
 	This chapter delves into the implementation of the planned architecture defined in section \ref{archdecision}.
-	First I'll introduce the starting point of the project.
-	Then I'll go into detail about how the backend creates a client, which communicates with the generator microservice. Finally I'll go into detail
+	First I will introduce the starting point of the project.
+	Then I will go into detail about how the backend creates a client, which communicates with the generator microservice. Finally I will go into detail
 	regarding the inner workings of the generator server.
 
 	The starting backend's class diagram can be found in the appendix at \ref{startingbackenduml}.
@@ -11,7 +11,7 @@
 		First, I will introduce the starting point of the project, so we get an overview, of how the backend initially worked regarding the model
 		generations.
 
-		The PushServiceDispatcher is the class responsibly for calling the functions of the ModelGenerationService instance, and thus initiating
+		The PushServiceDispatcher is the class responsible for calling the functions of the ModelGenerationService instance, and thus initiating
 		the generation related methods.
 
 		\subsection{ModelGenerationService} \label{ModelGenerationService}
@@ -418,12 +418,12 @@
 		As a result of this, I have given up on the development using WSL. I developed the application on Windows, while using WSL only for the
 		dockerization (\ref{Containerization}) of the finished applications.
 
-	\subsection{Deduplification for docker images}
+	\subsection{Deduplication for docker images}
 		The initial context preparation in section \ref{Preparation scripts} was implemented for two different distributions (the basic backend 
 		named web, and a generator cli called cli). The common\_libs creation for both of these distributed images was very straightforward
 		as the two distributions only had limited amount of JARs that they both used.
 
-		With my project, a new distribution for the generator server was created. Originally I wanted to implement the deduplification in a way,
+		With my project, a new distribution for the generator server was created. Originally I wanted to implement the deduplication in a way,
 		where if two of the three distributions contained a JAR, the JAR would be put in the common\_libs folder.
 		However, this implementation didn't seem too useful. In this case all of the resources needed for the web distribution were added to the common folder.
 		As such, the shell script would have been needed to be modified, so that it could handle empty dist folders during the pipeline. On the other hand
@@ -441,7 +441,7 @@
 		WebSocket servers won't respond to regular HTTP requests. With this original implementation, the health check for the load balancer would
 		not work: it always signaled that the task was not running, as it wouldn't respond to the curl http requests towards the default path (/).
 
-		As a workaround, I created a servlet called HealthCheckServlet, which responds to HTTP get requests at the path "/healthcheck",
+		As a workaround, I created a servlet called HealthCheckServlet, which responds to HTTP get requests (section \ref{backgrhttp}) at the path "/healthcheck",
 		by returning a "Server works!" plain text.
 
 		I added the servlet to the ServerLauncher of the generator microservice. By this, the load balancer can ensure the healthy state of the 

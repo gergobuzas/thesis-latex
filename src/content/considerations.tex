@@ -7,7 +7,7 @@ the planning phase. Last, but not least, I'll explain, why I chose the WebSocket
 my possiblilites.
 
 \subsection{REST API}\label{restconsiderations}
-The first architecture that came to my mind, was a \textbf{REST API (\ref{backgrrestapi})}. Using the Spring boot framework would allow for fast development
+The first architecture that came to my mind, was a \textbf{REST API (subsection \ref{backgrrestapi})}. Using the Spring boot framework would allow for fast development
 of our REST API. The state of the partial modelling editor would be sent to the REST API as a POST request, and the result
 would be returned as a Json, which the client would parse, and output the model accordingly. However, it was still in question
 how the generated model should be returned to the client.
@@ -28,7 +28,7 @@ how the generated model should be returned to the client.
 		\item \textbf{Long polling:}
 		Here, the REST API would respond immediately with a "Starting generator service" message, had it received a request.
 		The REST API would start and perform the generation, while the backend would constantly try to fetch the results from the API.
-		An example implementation can be seen in \ref{longpollingimage}
+		An example implementation can be seen in figure \ref{longpollingimage}
 		\begin{figure}
 			\begin{center}
 				\includegraphics[scale=0.5]{include/imgs/rest_long_poll.png}
@@ -43,10 +43,10 @@ another architecture should be looked at for the implementation.
 
 
 \subsection{Remote Procedure Call} \label{rpcconsiderations}
-	The second architecture that came up during the planning phase was Remote Procedure Call (RPC) (\ref{backgrpc}). The generation is pretty much
+	The second architecture that came up during the planning phase was Remote Procedure Call (RPC) (section \ref{backgrpc}). The generation is pretty much
 	a procedure, so calling it remotely sounded like a wise choice. 
 
-	Using gRPC (\ref{backgrgrpc}) would provide the timeout logic, and other clients
+	Using gRPC (section \ref{backgrgrpc}) would provide the timeout logic, and other clients
 	could also be created in the future, as the generator server would function as a gRPC server. The newly created clients would only need to
 	act as a gRPC client, and send requests according to the server's specification.
 
@@ -56,8 +56,8 @@ another architecture should be looked at for the implementation.
 
 	gRPC communicates over HTTP 2.0, so the newer HTTP protocol would have to be used, in order to utilize the usage of the gRPC library.
 
-\subsection{WebSocket server}
-	Last but not least, comes WebSocket (\ref{backgrwebsocket}). This basically would work the same way as the REST API long polling implementation,
+\subsection{WebSocket server} \label{considerationwebsocket}
+	Last but not least, comes WebSocket (section \ref{backgrwebsocket}). This basically would work the same way as the REST API long polling implementation,
 	however, the connection would not be closed after the initial request. This is due to the way WebSocket works.
 	
 	Due to the nature of WebSocket, after the model generation request is sent out by the client,
@@ -86,11 +86,16 @@ another architecture should be looked at for the implementation.
 	After investigating and evaluating the possible implementations, I decided to choose the WebSocket implementaiton 
 	utilizing the `backend as a proxy towards the microservice' due to the reasons below.
 
-	The \textbf{REST API implementation} should not be used as the states where an ongoing generation stands would be hard to represent
-	without the use of a workaround. Furthermore, the cancelation of ongoing generations would also need some workarounds for it to be implemented.
+	The \textbf{REST API implementation} should not be used as the states where an ongoing generation stands (see section \ref{requirements} 
+	requirement number \ref{requirementstate}) would be hard to represent
+	without the use of a workaround. Furthermore, the cancelation of ongoing generations (see section \ref{requirements} 
+	requirement number \ref{requirementcancel}) would also need some workarounds for it to be implemented.
 
-	The \textbf{gRPC implementaiton} could satisfy all of the project requirements. The The ongoing generations could be cancelled and timeout could 
-	be handled too. The gRPC implementation would introduce new dependencies for both the backend and the generator server projects.
+	The \textbf{gRPC implementaiton} could satisfy all of the project requirements. The The ongoing generations could be cancelled (see section \ref{requirements} 
+	requirement number \ref{requirementcancel}) and timeouts could 
+	be handled too (see section \ref{requirements} 
+	requirement number \ref{requirementtimeout}). 
+	The gRPC implementation would introduce new dependencies for both the backend and the generator server projects.
 	The final image of the backend and the generator would grow even bigger, but neither the overall user experience, performance
 	or the scalability would be improved compared to the WebSocket implementation. 
 
@@ -102,11 +107,12 @@ another architecture should be looked at for the implementation.
 		\end{center}
 	\end{figure}
 
-	The \textbf{WebSocket implementation} proposed in figure \ref{archplan} could satisfy all of the project requirements. Furthermore, WebSockets are already used 
+	The \textbf{WebSocket implementation} proposed in figure \ref{archplan} could satisfy all of the project requirements (section \ref{requirements}). 
+	Furthermore, WebSockets are already used 
 	in the backend project so it should be straightforward to use in the microservice implementation aswell.
 	This info also assures me, that there won't be any dependency issues related to this implementation. Another key factor, is that via the use of 
 	WebSockets, no additional dependencies have to be added. The editor server already communicates with the clients over WebSocket, through which
-	the model generation requests are sent over. Using WebSockets and the "backend as a proxy towards the microservice" implementation could 
+	the model generation requests are sent over. Using WebSockets and the "backend as a proxy towards the microservice" (section \ref{considerationwebsocket}) implementation could 
 	reduce the overall work needed for the refactor, 
 	as the Frontend of Refinery 
 	doesn't have to be touched. The changes to the architecture of the application will not be noticable for the client, yet the performance may improve.
@@ -202,7 +208,7 @@ another architecture should be looked at for the implementation.
 		microservice and removing the generation from the main backend. As a result, I feel like using 
 		Kubernetes or Elastic Kubernetes Service (EKS) for this task
 		would be way too overkill, as only two containers would be running at the same time. 
-		For a task of this size, the YAGNI principle should be applied.
+		For a task of this size, the YAGNI principle (= `You are not gonna need it') should be applied.
 		
 		EKS wouldn't even allow us to become more independent
 		from the AWS infrastructure (as if that was an issue, with only docker containers being hosted as tasks). However, if using another 

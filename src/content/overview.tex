@@ -74,20 +74,23 @@ restructuring of the backend architecture and for the creation of the GeneratorS
 
 \textbf{The requirements for the restructuring of Refinary should be as follows:}
 \begin{enumerate}
-        \item \textbf{The backend of the application should be scalable.} This should be done, so that under increased usage 
-		the user experience should not be compromised.
-        \item \textbf{The client should be able to cancel the model generation.} If the user reconsiders their need of the 
-		generated model, it should be a possibility that they can cancel it. Furthermore, canceling a not needed model generation 
-		improves resource usages (and by this, the scalability aswell).
-        \item \textbf{The client must be able to show the state of the model generation.} By this, the client-side of the application can showcase
+        \item \label{requirementscale} \textbf{The backend of the application should be scalable.} This should be done, so that under increased usage 
+		the user experience should not be compromised. This should be achieved via cloud infrastructure scaling.
+		If more resources were allocated for the backend services, the response times should improve. Furthermore, the
+		architecture of the backend should be implemented with scalability in mind.
+        \item \label{requirementcancel} \textbf{The client should be able to cancel the model generation.} If the user reconsiders their need of the 
+		generated model, it should be a possibility that they can cancel it. Cancelling a model generation should 
+		free up server-side resources (thus, also increasing scalability).
+		\item \label{requirementstate} \textbf{The client must be able to show the state of the model generation.} By this, the client-side of the application can showcase
         where the state of the model generation is at. Potential errors during the generation can also be showcased via the use of the state representation.
-        \item \textbf{There must be a timeout set for the model generation.} During the unlikely event of a bug in the generation implementation, 
+        \item \label{requirementtimeout} \textbf{There must be a timeout set for the model generation.} During the unlikely event of a bug in the generation implementation, 
 		a timeout can limit the duration of the model generation process. This also limits heavy resource usage durations. Furthermore, if the connection would be 
 		permanently lost with the frontend during the generation, the timeout could stop the no longer needed generation.
-		\item \textbf{(Optional) The implementation should allow the creation of other type of cliens other than web browser-based clients.} In the future
+		\item \label{requirementseparateclient} \textbf{(Optional) The implementation should allow the creation of other type of cliens other than web browser-based clients.} In the future
 		the application could be extended to run as a separate service. The model generations could also be used by other developers, leveraging an API for the
 		generations.
-		\item \textbf{(Optional) The editor and generator should be deployed together.} This should improve the overall development experience of the application.
+		\item \label{requirementdeployment} \textbf{(Optional) It should be possible to deploy the editor and the generator together.} 
+		This should improve the overall development experience of the application.
 		By deploying the two services together, the live infrastructure can be simulated on the local environment.
 \end{enumerate}
 

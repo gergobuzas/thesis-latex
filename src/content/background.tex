@@ -4,11 +4,14 @@ Some of these technologies were only considered during the designing part of the
 during the implementation.
 
 \section{Java} \label{backgrjava}
-	Java \cite{java} is a widely-used, object-oriented programming language known for its platform independence, achieved through the Java Virtual Machine (JVM). 
+	Java \cite{java} is a widely-used, object-oriented programming language known for its platform independence, 
+	achieved through the Java Virtual Machine (JVM). 
 
-	The backend of Refinery was programmed using the Java programming language. In the scope of this thesis, Java the main programming being used.
+	The backend of Refinery was programmed using the Java programming language. 
+	During the thesis, Java is the main programming language being used.
 
-	Java supports core object-oriented programming principles like encapsulation, inheritance, and polymorphism, promoting code modularity and reusability.
+	Java supports object-oriented programming principles like encapsulation, inheritance, and polymorphism, 
+	providing code modularity and reusability.
 	This comes in handy for the modification of the already existing codebase, while preserving the old implementaiton.
 
 	When working with Java, a Java Development Kit (JDK) has to be installed on the system.
@@ -19,33 +22,41 @@ during the implementation.
 	Gradle \cite{gradle} is the build automation tool used for the Refinery repository and it greatly helps the package management, 
 	building, testing and the local deployment of the project / subprojects.
 
-	Gradle supports Java as a programming language, which is the language in which the backend of Refinery was written.
+	Gradle supports Java (section \ref{backgrjava}) as a programming language, which is the language in which the backend of Refinery was written.
 
 	Gradle was designed for multi-project builds, like the Refinery project, consisting of several subprojects. 
-	It operates based on a series of build tasks that can run serially or in parallel. This can come in handy for the backend and the generator service 
+	It operates based on a series of build tasks that can run serially or in parallel. 
+	This is useful for the backend and the future generator service 
 	running simultaneously, locally as separate subprojects.
 
 	Incremental builds and caching of build components are supported, which provide faster build times during the development.
 
 \section{Jetty} \label{backgrjetty}
 	Eclipse Jetty \cite{jetty} provides a highly scalable and memory-efficient web server and servlet container, supporting many protocols
-	 such as HTTP/3,2,1 and WebSocket. The original backend of Refinery uses Jetty as its server and could be a viable option for the future generation
-	 microservice aswell.
+	such as HTTP/3,2,1 (section \ref{backgrhttp}) and WebSocket (section \ref{backgrwebsocket}). 
+	 
+	The original backend of Refinery uses Jetty as its server and could be a viable option for the future generation
+	microservice aswell.
 
 \section{JSON} \label{backgrjson}
 	JSON (JavaScript Object Notation) \cite{json} is a lightweight data-interchange format. 
 
-	JSON is built on two structures:
+	The following description of JSON is by json.org:
+
+	\textit{`JSON is built on two structures:}
 	\begin{itemize}
-		\item A collection of name/value pairs. In various languages, this is realized as an object, record, struct, dictionary, hash table, 
-		keyed list, or associative array.
-		\item An ordered list of values. In most languages, this is realized as an array, vector, list, or sequence.
+		\item \textit{A collection of name/value pairs. In various languages, this is realized as an object, record, struct, dictionary, hash table, 
+		keyed list, or associative array.}
+		\item \textit{An ordered list of values. In most languages, this is realized as an array, vector, list, or sequence.'}
 	\end{itemize}
 
-	The Refinery web application uses JSON messages as a way to communicate model generation request states, results and metadata between the frontend and the backend.
+	The Refinery web application uses JSON messages as a way to communicate model generation request states
+	, results and metadata between the frontend and the backend. It can be a viable communication format for the backend and the 
+	future generator microservice.
 
-\section{Hypertext Transfer Protocol} \label{backgrrestapi}
-	HTTP (Hypertext Transfer Protocol) \cite{httpdoc} is an application layer protocol, designed for enabling communication between clients and servers. 
+\section{Hypertext Transfer Protocol} \label{backgrhttp}
+	HTTP (Hypertext Transfer Protocol) \cite{httpdoc} is an application layer protocol, 
+	designed for enabling communication between clients and servers. 
 	HTTP works as a single request - single response protocol between the communicating endpoints.
 
 	HTTP requests are human readable. They consist of the following parts:
@@ -63,32 +74,38 @@ during the implementation.
 		\item \textbf{Body:} For some requests (e.g.: POST), additional info is provided here.
 	\end{itemize}
 
+	The Refinery application utilizes HTTP for both the frontend and the backend of the application. 
+
 \section{REST API} \label{backgrrestapi}
-	A REST API \cite{restapi} (also called a RESTful API or RESTful web API) is an application programming interface (API) that conforms to the design principles of 
+	A REST API \cite{restapi} (also called a RESTful API or RESTful web API) is 
+	an application programming interface (API) that conforms to the design principles of 
 	the representational state transfer (REST) architectural style. 
 
-	REST API's via the use of the HTTP protocol utilize a single request - single response communication methodology.
+	REST API's via the use of the HTTP protocol (section \ref{backgrhttp}) utilize a single request - 
+	single response communication methodology.
 	REST APIs communicate through HTTP requests to perform standard database functions like creating (POST), reading (GET),
 	updating (PUT) and deleting (DELETE) records (also known as CRUD operations) within a resource.
 
 	REST API's can be implemented really easily due to the efforts of many server framework providers. For Java, these include 
-	the very popular Spring and Jetty frameworks. 
+	the very popular Spring and Jetty (section \ref{backgrjetty}) frameworks. 
 
-	At the start of the thesis, Refinery doesn't use or provide any REST APIs, but the implementation of one for the model 
+	At the start of the thesis, Refinery does not use or provide any REST APIs, but the implementation of one for the model 
 	generation requests could be a viable option.
 
 \section{Remote Procedure Call} \label{backgrpc}
-	In distributed computing, a remote procedure call (RPC) \cite{rpc} is when a computer program causes a procedure (subroutine) to execute in a different address space 
-	(commonly on another computer on a shared computer network), which is written as if it were a normal (local) procedure call, without the programmer 
-	explicitly writing the details for the remote interaction. That is, the programmer writes essentially the same code whether the subroutine is local to 
-	the executing program, or remote.
-	This is a form of client–server interaction (caller is client, executor is server), typically implemented via a request–response message passing system.
+	In distributed computing, a remote procedure call (RPC) \cite{rpc} is when a computer program causes a procedure  
+	to execute in a different address space 
+	(usually on another computer within the same network), 
+	which is written as if it were a local procedure call, without the programmer 
+	explicitly writing the details for the remote communication. 
+	Via this the programmer writes essentially the same code regardless that the subroutine is local or remote.
 
 	At the start of the thesis, Refinery doesn't use any RPC libraries, however the use of one (like gRPC) could be used for the model generation service implementation.
 
 \section{gRPC} \label{backgrgrpc}
-	gRPC (gRPC Remote Procedure Calls) \cite{grpcwiki} is a cross-platform high-performance remote procedure call (RPC) framework. 
-	gRPC uses HTTP/2 for transport.	It generates cross-platform client and server bindings for many languages (which includes Java). 
+	gRPC (gRPC Remote Procedure Calls) \cite{grpcwiki} is a remote procedure call (RPC) (section \ref{backgrpc}) framework. 
+	gRPC uses HTTP/2 for transport.	It generates cross-platform client and server bindings for many languages (which includes 
+	Java \ref{backgrjava}). 
 
 	\begin{figure}[h!]
 		\begin{center}
@@ -97,19 +114,16 @@ during the implementation.
 		\caption{gRPC server and the clients, as represented in gRPC documentation \cite{grpcspec}}
 	\end{figure}
 
-	In gRPC, a client application can directly call a method, which is defined on a server application on a different machine, as if it were a local object. 
 	gRPC clients and servers can run and talk to each other in a variety of environments. This includes both on-prem, and more importantly in our case,
 	cloud-based environments.
-	\cite{grpcspec}
 
 	\subsection{Core concepts}
 	Some of the core concepts of gRPC include, but not limited to \cite{grpcspec2}:
 	\begin{itemize}
 		\item \textbf{Server streaming RPC:} The server responds with multiple responses to the client, which sends a single request. 
-		After sending all its messages, the server’s status details (status code and optional status message) and optional trailing metadata are sent to the client.
-		This completes processing on the server side. The client completes once it has all the server’s messages.
-		\item \textbf{Deadlines/Timeouts:} gRPC allows clients to specify how long they are willing to wait for an RPC to complete. On the server side, the server can query to see if a particular RPC has timed out, or how much time is left to complete the RPC.
-		\item \textbf{Cancelling an RPC:} Either the client or the server can cancel an RPC at any time. A cancellation terminates the RPC immediately so that no further work is done. The changes made before the cancellation are not rolled back.
+		\item \textbf{Deadlines/Timeouts:} gRPC allows clients to specify how long they are willing to wait for an RPC to complete. 
+		\item \textbf{Cancelling an RPC:} Either the client or the server can cancel an RPC at any time. 
+		A cancellation terminates the RPC immediately.
 	\end{itemize}
 
 	The current implementation of Refinery doesn't use the gRPC framework. However, it can be a possible solution for the generator microservice implementaiton. 
@@ -161,13 +175,12 @@ during the implementation.
 		\caption{WebSocket connection over HTTP}
 	\end{figure}
 
-	The current implementation of Refinery already utilizes WebSocket. The frontend communicates editor changes and model generation
-	states, results and metadata via the use of WebSocket. However, for the implementation of the generator microservice, it could also be a viable solution.
+	The current implementation of Refinery does already utilize WebSocket. The frontend communicates editor changes, model generation
+	states, results and metadata via the use of WebSocket. 
+	For the implementation of the generator microservice, it could also be a viable solution.
 
 \section{Shell} \label{backgrshell}
 	In computing, a shell \cite{shell} is a computer program that exposes an operating system's services to a human user or other programs. 
-	In general, operating system shells use either a command-line interface (CLI) or graphical user interface (GUI), 
-	depending on a computer's role and particular operation. It is named a shell because it is the outermost layer around the operating system.
 
 	In addition to shells running on local systems, there are different ways to make remote 
 	systems available to local users; such approaches are usually referred to as remote access (like the use of SSH) or remote administration.
@@ -176,8 +189,9 @@ during the implementation.
 	as a remote access for our VMs via the use of SSH, which allows debugging our infrastructure.
 
 \section{Shell script} \label{backgrshellscript}
-	A shell script \cite{shellscript} is a computer program designed to be run by a Unix shell, a command-line interpreter. Typical operations performed by shell scripts include file manipulation, program execution, and printing text.
-	The term is also used more generally to mean the automated mode of running an operating system shell.
+	A shell script \cite{shellscript} is a computer program designed to be run by a Unix shell (section \ref{backgrshell}). 
+	Typical operations performed by shell scripts are file manipulation, program execution.
+	The term is also used for the automated mode of running an operating system shell.
 
 	The Refinery project has Unix shell scripts, which automate the build process and the containerization of the application.
 
@@ -196,9 +210,9 @@ during the implementation.
 	The providers offer compute, storage and network resources over the internet. 
 
 	The cloud services used for the deployment of Refinery are called `Infrastructure as a service (IaaS)'.
-	IaaS service means \cite{cloud} \textit{`on-demand access to IT infrastructure services, 
+	IaaS service means \textit{`on-demand access to IT infrastructure services, 
 		including compute, storage, networking, and virtualization. It provides the highest level of control over the IT 
-		resources and most closely resembles traditional on-premises IT resources.'}
+		resources and most closely resembles traditional on-premises IT resources.' \cite{cloud} }
 
 	\subsection{Cloud Native} \label{backgrcloudnative}
 		This following definition of Cloud Native is taken from AWS's website \cite{cloudnative}:
@@ -212,6 +226,9 @@ during the implementation.
 			and frequent changes to applications without impacting service delivery, providing
 			adopters with an innovative, competitive advantage.'
 		}
+
+		The implementation of the Refinery web application is a cloud native application. It is deployed 
+		and managed in the AWS cloud (section \ref{backgraws}).
 
 	\subsection{Scaling} \label{backgrscaling}
 		The following explanation of scaling is taken from VMWare's website \cite{scaling}:
@@ -234,14 +251,17 @@ during the implementation.
 				minimal downtime.'
 			\end{itemize}
 		}
+		The deployment of Refinery's infrastructure utilizes scaling via the use of application 
+		auto scaling (section \ref{backgautoscaling}).
+
 	\subsection{Load Balancing} \label{backgrloadbalance}
-		The following parts regarding load balancing are taken from Cloudflare at \cite{loadbalancing}:
+		The following parts regarding load balancing are taken from Cloudflare \cite{loadbalancing}:
 
 		\textit{
 			`Load balancing \cite{loadbalancing} is the practice of distributing computational workloads between two or more computers. 
 			On the Internet, load balancing is often used for dividing network traffic among several servers. 
 			This reduces the strain on each server and makes the servers more efficient, speeding up performance and 
-			reducing latency. Load balancing is essential for most Internet applications to function properly. 
+			reducing latency.  
 			By dividing user requests among multiple servers, user wait time is vastly reduced. 
 			This results in a better user experience.'
 		}
@@ -249,85 +269,79 @@ during the implementation.
 		\textit{
 			`Load balancing is handled by a tool or application called the load balancer. A load balancer can be 
 			either hardware-based or software-based. 
-			\begin{itemize}
-				\item \textbf{Hardware load balancers} require the installation of a 
-			dedicated load balancing device.
-				\item \textbf{Software-based load balancers} can run on a server, on a virtual machine, 
-			or in the cloud.
-			\end{itemize}
-			Content delivery networks (CDN) often include load balancing features.
-			When a request arrives from a user, the load balancer assigns the request to a given server, 
-			and this process repeats for each request. Load balancers determine which server should handle each request 
-			based on a number of different algorithms. These algorithms fall into two main categories: static and dynamic.'
+			Load balancers determine which server should handle each request 
+			based on a number of different algorithms. 
+			These algorithms fall into two main categories: static and dynamic.'
 		}
 		\begin{itemize}
 			\item \textit{\textbf{Static load balancing} algorithms distribute workloads without taking into account the current 
-			state of the system. A static load balancer will not be aware of which servers are performing 
-			slowly and which servers are not being used enough. 
-			Instead it assigns workloads based on a predetermined plan.}
+			state of the system. }
 			
-			\textit{Static load balancing is quick to set up,
-			but can result in inefficiencies. Round robin DNS and client-side random load balancing are 
-			two common forms of static load balancing.}
-
 			\item \textit{\textbf{Dynamic load balancing} algorithms take the current availability, workload, 
 			and health of each server into account. 
-			They can shift traffic from overburdened or poorly performing servers to underutilized servers, 
-			keeping the distribution even and efficient. However, dynamic load balancing is more difficult 
-			to configure. A number of different factors play into server availability: 
-			the health and overall capacity of each server, the size of the tasks being distributed, and so on.}
-
-			\textit{There are several types of dynamic load balancing algorithms, including least connection, weighted least connection, resource-based, and geolocation-based load balancing.}
+			}
 		\end{itemize}
+
+		The deployment of Refinery's infrastructure utilizes load balancing. The balancing algorithm can be round-robin (static) and 
+		least connection (dynamic), as AWS load balancers (section \ref{awslb}) provide these algorithms from the start.
 
 \section{Amazon-related cloud technologies}
 	\subsection{Amazon Web Services(AWS)} \label{backgraws}
-		Amazon Web Services (AWS) \cite{aws} is the public cloud offerring by the parent company Amazon. AWS has a vast offering
-		of services, which help its end-users manage the infrastructures needed to host their own applications, 
-		microservices, APIs and what not.
+		Amazon Web Services (AWS) \cite{aws} is the public cloud offerring by Amazon. AWS has a vast offering
+		of services, which help its end-users manage the infrastructures needed to host their own applications.
 		AWS services are delivered to customers via a network of AWS server farms located throughout the world.
 
-		The project uses Amazon Web Services for the infrastructure of Refinery.
+		The project uses Amazon Web Services for the infrastructure of Refinery. 
+		It should be deployed in the Stockholm region.
 
 		In the following sections (2.14.2 - 2.14.6), I will go into detail what some of those services are and how
 		they can be beneficial for the users of those services.
 
 	\subsection{Amazon Elastic Compute Cloud (EC2)} \label{backgrec2}
 		Amazon Elastic Compute Cloud (Amazon EC2) \cite{ec2} provides on-demand, scalable computing capacity in the Amazon 
-		Web Services (AWS) Cloud. Using Amazon EC2 reduces hardware costs so users can develop and deploy applications faster. 
-		Amazon EC2 can be used to launch as many or as few virtual servers as needed, configure security and networking, 
-		and manage storage. Capacity can be added (upscale) to handle compute-heavy tasks, such as monthly or yearly processes,
-		or spikes in website traffic. When usage decreases, the capacity can be reduced (downscale) again.
+		Web Services (AWS) Cloud.  
+		Amazon EC2 instances are virtual machine (VM) instances running in Amazon's cloud environment (AWS). 
+		The amount of VMs can be scaled based on resource usage via the use of auto scaling (section \ref{backgautoscaling}).
+
+		The Refinery web application can be deployed on running EC2 instances.
 
 	\subsection{Amazon Elastic Container Service (ECS)} \label{backgecs}
 		Amazon Elastic Container Service (Amazon ECS) \cite{ecs} is a fully managed container orchestration service that helps 
-		the deployment, management, and scaling of containerized applications. It is integrated with both AWS and third-party tools, 
-		such as Amazon Elastic Container Registry and Docker. This integration makes it easier for users to focus on 
-		building the applications, not the environment. 
+		the deployment, management, and scaling of containerized (section \ref{backgcontainer}) applications. 
+		It is integrated with both AWS and third-party tools, 
+		such as the Docker and GitHub registry. This integration makes the deployment of Refinery easier.
 
-		There are three main layers in Amazon ECS:
+		There are three main layers of Amazon ECS \cite{ecs}:
 		\begin{enumerate}
-			\item \textbf{Capacity:} The infrastructure where the users runs their containers. Options include Amazon EC2, 
-			AWS Fargate and On-prem virtual machines and servers (infrastructure outside of Amazon) 
-			\item \textbf{Controller:} The deployment and management of the applications that are run on the containers. The Amazon
-			ECS scheduler is the software that manages / controls the applications.
-			\item \textbf{Provisioning:} The tools used for interfacing with the ECS scheduler to deploy and manage the applications.
+			\item \textit{\textbf{Capacity:} The infrastructure where the users run their containers. Options include Amazon EC2, 
+			AWS Fargate and On-prem virtual machines and servers (infrastructure outside of Amazon) }
+			\item \textit{\textbf{Controller:} The deployment and management of the applications that are run on the containers. The Amazon
+			ECS scheduler is the software that manages / controls the applications.}
+			\item \textit{\textbf{Provisioning:} The tools used for interfacing with the ECS scheduler to deploy and manage the applications.
 			and containers. Options include the AWS Management Console (Web GUI), AWS Command Line Interface (CLI), 
-			AWS Software Development Kits (SDKs).
+			AWS Software Development Kits (SDKs).}
 		\end{enumerate}
 
-		Amazaon ECS can be a valid option for the provisioning of Refinery's services. 
+		Amazaon ECS can be a valid option for the provisioning of Refinery's services. The AWS Management Console 
+		can be used for provisioning.
 
 	\subsection{Virtual Private Cloud (VPC)} \label{backgvpc}
-		With Amazon Virtual Private Cloud (Amazon VPC) \cite{vpc}, users can launch AWS resources in a logically 
+		The following introduction is from Amazon's documentation \cite{vpc}:
+
+		\textit{`With Amazon Virtual Private Cloud (Amazon VPC) \cite{vpc}, users can launch AWS resources in a logically 
 		isolated virtual network that is defined by the user. This virtual network closely resembles a traditional network 
-		that the user would operate, with the benefits of using the scalable infrastructure of AWS.
+		that the user would operate, with the benefits of using the scalable infrastructure of AWS.'}
+
+		The deployment of Refinery's infrastructure is done within one Virtual Private Cloud. This way even if 
+		the application instances are running on a different subregion of Amazon's cloud, they are connected within one network.
 
 	\subsection{Elastic Load Balancing (ELB)} \label{backgelb}
-		Elastic Load Balancing \cite{elb} automatically distributes incoming traffic across multiple targets, 
+		The following introduction is from Amazon's documentation \cite{elb}:
+
+		\textit{`Elastic Load Balancing \cite{elb} automatically distributes incoming traffic across multiple targets, 
 		such as EC2 instances, containers, and IP addresses. 
 		It monitors the health of its registered targets, and routes traffic only to the healthy targets. 
-		Elastic Load Balancing scales load balancers as the incoming traffic changes over time. 
+		Elastic Load Balancing scales load balancers as the incoming traffic changes over time.'}
 
 		Elastic Load Balancing supports the following load balancers: 
 		\begin{itemize}
@@ -338,73 +352,85 @@ during the implementation.
 		\end{itemize}
 
 		\subsubsection{Application Load Balancer} \label{backgalb}
-			An Application Load Balancer \cite{elb} functions at the application layer, the seventh layer of the Open Systems Interconnection (OSI)
+			The following introduction is from Amazon's documentation \cite{elb}:
+
+			\textit{`An Application Load Balancer \cite{elb} functions at the application layer, the seventh layer of the Open Systems Interconnection (OSI)
 			model. After the load balancer receives a request, it evaluates the listener rules in priority order to determine which 
 			rule to apply, and then selects a target from the target group for the rule action. 
-			Routing is performed independently for each target group, even when a target is registered with multiple target groups. 
 			Routing algorithm can be configured at the target group level. 
-			The default routing algorithm is round robin; alternatively, the least outstanding requests routing algorithm can be used aswell.
+			The default routing algorithm is round robin; alternatively, the least outstanding requests routing algorithm can be used aswell.'}
 
-			Health checks can be configured, which are used to monitor the health of the registered targets so that the 
-			load balancer can send requests only to the healthy targets within a target group.
+			\textit{`Health checks can be configured, which are used to monitor the health of the registered targets so that the 
+			load balancer can send requests only to the healthy targets within a target group.'}
 
 			The application load balancer can be utilized for the Refinery applications. This allows our scaling services (like the backend and 
 			the generator) to receive requests based on the set load balancing algorithm. The services should be setup as separate target groups.
 
 	\subsection{Application Auto Scaling} \label{backgautoscaling}
-		Application Auto Scaling \cite{autoscale} is a web service for developers and system administrators 
-		who need a solution for automatically scaling their scalable resources for individual AWS services beyond Amazon EC2. 
-
-		Application Auto Scaling allows automatic scaling of scalable resources according to conditions that are defined.
+		The following introduction is from Amazon's documentation \cite{autoscale}:
+		\textit{`Application Auto Scaling \cite{autoscale} is a web service for automatically scaling scalable resources 
+		for individual AWS services beyond Amazon EC2. Application Auto Scaling allows automatic scaling of 
+		scalable resources according to conditions that are defined.'}
 
 		The auto scaling is useful for the scaling of containerized Refinery services (backend, and generator service).
 
 \section{Containers} \label{backgcontainer}
-	Containerization \cite{container} is the packaging together of software code with all it’s necessary 
+	The following introduction for containers is taken from RedHat's website \cite{container}:
+	\textit{
+	`Containerization \cite{container} is the packaging together of software code with all it’s necessary 
 	components like 
-	libraries, frameworks, and other dependencies so that they are isolated in their own container.
+	libraries, frameworks, and other dependencies so that they are isolated in their own container.'}
 	
-	This is done so that the software or application within the container can be moved and run consistently 
+	\textit{`This is done so that the software or application within the container can be moved and run consistently 
 	in any environment and on any infrastructure, independent of that environment or infrastructure’s 
 	operating system. It is a fully functional 
-	and portable computing environment.
+	and portable computing environment.'}
 
-	The "lightweight" or portability characteristic of containers comes from their ability to share 
-	the host machine’s operating system kernel, negating the need for a separate operating system for 
-	each container and allowing the application to run the same on any infrastructure 
-	even within virtual machines (VMs).
-
-	Containers are often used to package single functions that perform specific tasks—known as a microservice. 
-	Microservices are the breaking up of the parts of an application into smaller, more specialized services. 
+	\textit{`Containers are often used to package single functions that perform specific tasks—known as a microservice. 
+	Microservices are the breaking up of the parts of an application into smaller, more specialized services.'}
 
 	The services of the Refinery application should be developed with containerization in mind. This makes 
 	the distribution and deployment of the application much easier.
 
 	\subsection{Docker} \label{backgdocker}
-		Docker \cite{docker} is an open platform for developing, shipping, and running applications. 
-		Docker provides the ability to package and run an application in a loosely isolated environment 
-		called a container. The isolation and security lets you run many containers simultaneously 
-		on a given host.
+		According to Docker's documentation \cite{docker}:
 
-		Docker containers can be created by running docker images. Images are templates 
-		containing the read-only instructions needed 
-		to create the container running our application. To build an image, the user has to write a Dockerfile
-		where they specify all of the steps needed to build their image (like linking libraries, exposing ports, 
-		setting environment variables, etc.)
+		\textit{
+			`Docker \cite{docker} is an open platform for developing, shipping, and running applications. 
+			Docker provides the ability to package and run an application in a loosely isolated environment 
+			called a container. The isolation and security lets you run many containers simultaneously 
+			on a given host.'
+		}
 
-		The docker container is the running instance of the docker image. Those can be run by the use of the docker cli.
+		\textit{
+			`Docker containers can be created by running docker images. Images are templates 
+			containing the read-only instructions needed 
+			to create the container running our application. To build an image, the user has to write a Dockerfile
+			where they specify all of the steps needed to build their image (like linking libraries, exposing ports, 
+			setting environment variables, etc.')
+		}
+
+		\textit{
+			`The docker container is the running instance of the docker image. Those can be run by the use of the docker cli.'
+		}
 
 		The implemented Refinery services can be containerized via the use of Docker images. The images can be uploaded to the 
 		Docker Registry, providing easier distribution.
 
 
 	\subsection{Docker Compose} \label{backgdockercompose}
-		Docker Compose \cite{dockercompose} is a tool for defining and running multi-container applications. 
-		It is the key to unlocking a streamlined and efficient development and deployment experience.
+		According to Docker \cite{dockercompose}:
 
-		Compose simplifies the control of the entire application stack, making it easy to manage services, 
-		networks, and volumes in a single, comprehensible YAML configuration file. 
-		With a command, all of the services from the configuration file can be started.
+		\textit{
+			`Docker Compose \cite{dockercompose} is a tool for defining and running multi-container applications. 
+			It is the key to unlocking a streamlined and efficient development and deployment experience.'
+		}
+
+		\textit{
+			Compose simplifies the control of the entire application stack, making it easy to manage services, 
+			networks, and volumes in a single, comprehensible YAML configuration file. 
+			With a command, all of the services from the configuration file can be started.
+		}
 
 		Within the scope of the thesis, Docker Compose can be used for the local deployment of 
 		the containerized Refinery backend and generator services. This provides manual testing abilities

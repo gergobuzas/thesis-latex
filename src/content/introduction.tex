@@ -14,21 +14,22 @@ both semantically and syntactically. The editor uses the custom-made partial mod
 Users of the application can generate a model, representing their defined graph problems. The generation of 
 said model can be quite resource heavy and may take several seconds to perform. 
 This generation is currently performed in the same backend server, towards which the frontend clients of the application
-connect with. 
+connect and communicate with. 
 
 Under increased usage from the users, new connections made to the backend server might not be possible because of 
 the increased workloads on the server. Furthermore, response times might make the user experience worse for the users, due to the increased response
 times or timeouts.
 
-This issue should only arises, under extreme usage-circumstances. The deployed infrastructure in production already mitigates this issue by 
+This issue should only arise, under extreme usage-circumstances. The deployed infrastructure in production already mitigates this issue by 
 the use of auto scaling and load balancers. However, the model generation is still done on the same server as the backend server of 
 the application.
 
-The scope of my thesis is the design and implementation of a generator service, which can be integrated into the workflow of the model generation.
+The scope of my thesis is the designing and implementation of a generator service, which can be integrated into the workflow of the model generation.
 By implementing a generator service, it is hoped, that the response times under heavy usage can improve. All of this should be performed by 
 putting extra care into the scalabity of the application. The costs associated with the improvements should also be considered.
 
-In Chapter \ref{Background}, I introduce the technologies, that are already or could be used for implementation of the Refinery web application.
+In Chapter \ref{Background}, I introduce the technologies, that are already or could be used for the 
+implementation of the Refinery web application.
 This is done with extra attention put towards the model generation part of the application.
 
 In Chapter \ref{overview}, I go over the current implementation of the application. I describe the frontend and the current backend of the application.
