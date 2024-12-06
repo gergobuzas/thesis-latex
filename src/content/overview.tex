@@ -5,7 +5,7 @@
 	This can mean reducing the operating costs and / or having better response times for each requests that the users of the application make. 
 
 	As such, the current
-	infrastructure has to be understood, and only then can ways be found, how improvements can be made.
+	infrastructure has to be understood, and only then can ways be found, how improvements may be possible to make.
 
 	Scalability can be greatly improved via the modification of the backend architecture of an application, so that is naturally what
 	I am going to describe in greater detail. 
@@ -35,7 +35,7 @@
 	much easier. The most important usecase for XText, is the saving and verification of the text, 
 	written in the editor.
 
-	When a client (= an instance of the Refinery Frontend) makes a connection to backend server, a WebSocket 
+	When a client (= an instance of the Refinery Frontend) makes a connection to the backend server, a WebSocket 
 	connection is made. Through this open WebSocket connection, the client continously sends JSON messages to
 	the server.
 
@@ -43,13 +43,14 @@
 	This inital update contains an example model, which also showcases for the user, how the language can be used
 	for defining a graph problem. 
 	
-	After this initialization, only differences are sent to the backend, so that 
+	After this initialization, only the differences are sent to the backend, so that 
 	the edits made by the user can also be applied to the state on the backend session. 
 	After each user edit/modification, the
-	validity of the model is verified by the server: both semantically and syntactically, and sent back to the client.
+	validity of the model is verified by the server: both semantically and syntactically, and the results are 
+	sent back to the client.
 
 	If no action is made by the user, the connection between the client and the server
-	is kept alive via the use of the ping and pong messages of WebSocket.
+	is kept alive via the use of the ping and pong messages of WebSocket (section \ref{backgrwebsocket}).
 
 	If the user finished the creation of the graph model and the generate button is pressed 
 	on the client-side, a message containing the generation service request is sent to the server 
@@ -70,7 +71,7 @@
 
 \section{Requirements} \label{requirements}
 Now that we have an idea, of what we have to perform to enhance the scalability of Refinery, we have to set some requirements for the
-restructuring of the backend architecture and for the creation of the GeneratorServer service. 
+restructuring of the backend architecture and for the creation of the generator microservice. 
 
 \textbf{The requirements for the restructuring of Refinary should be as follows:}
 \begin{enumerate}
@@ -79,10 +80,10 @@ restructuring of the backend architecture and for the creation of the GeneratorS
 		If more resources were allocated for the backend services, the response times should improve. Furthermore, the
 		architecture of the backend should be implemented with scalability in mind.
         \item \label{requirementcancel} \textbf{The client should be able to cancel the model generation.} If the user reconsiders their need of the 
-		generated model, it should be a possibility that they can cancel it. Cancelling a model generation should 
+		generated model, there should be a possibilty of cancellation. Cancelling a model generation should 
 		free up server-side resources (thus, also increasing scalability).
 		\item \label{requirementstate} \textbf{The client must be able to show the state of the model generation.} By this, the client-side of the application can showcase
-        where the state of the model generation is at. Potential errors during the generation can also be showcased via the use of the state representation.
+        where the state of the model generation is at. Potential errors during the generation can also be displayed via the use of the state representation.
         \item \label{requirementtimeout} \textbf{There must be a timeout set for the model generation.} During the unlikely event of a bug in the generation implementation, 
 		a timeout can limit the duration of the model generation process. This also limits heavy resource usage durations. Furthermore, if the connection would be 
 		permanently lost with the frontend during the generation, the timeout could stop the no longer needed generation.
