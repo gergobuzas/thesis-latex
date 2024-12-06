@@ -6,7 +6,7 @@
 
 	The backend of the application is scalable in several ways. The most obvious one, is how the application is deployed on AWS. 
 	If the resource usages hit a certain treshold, a new task is deployed. If the task cannot fit on an already running EC2 instance,
-	the running EC2 instances scale up. This was desribed in section \ref{awsdeploy}. The other way the application supports 
+	the running EC2 instances scale in. This was desribed in section \ref{awsdeploy}. The other way the application supports 
 	scalability is the way it handles multiple generation requests. Both the server (\ref{Generator Server}) and the client
 	(\ref{Generator Client}) for the generator 
 	functionality support multithreaded operation. As a result, generation requests can run in parallel, and the resource utilization
@@ -170,7 +170,7 @@
 				requests, so it is something that should be investigated in the future.
 
 				However, the resource usages were very high with the described task resource allocations. The auto scaling of the service worked,
-				with 5 backend and 8 generator instances running at some point during the test. After the end of the test, the services scaled down 
+				with 5 backend and 8 generator instances running at some point during the test. After the end of the test, the services scaled out 
 				to only using 1 instance for each service.
 
 				The takeaway is that some kind of thread usage limitation should also be implemented in the generator server (section \ref{Generator Server}),
@@ -195,7 +195,7 @@
 				The results were as follows in figure \ref{2threads4web2gen}.
 
 				The only data being invalid is the first generation request. I forced my services to start with several instances, as I was trying to 
-				simulate a scaled up environment for my infrastructure. However, when the generator service receives its first request, it usually takes
+				simulate a scaled in environment for my infrastructure. However, when the generator service receives its first request, it usually takes
 				much longer to complete, due to the dispatcher not being initialized upon server start, only upon the first request.
 
 				The response times improved significantly compared to in figure \ref{4threadsnew}. A linear growth can be noticed between the response times.
