@@ -1,5 +1,5 @@
 \chapter{Background} \label{Background}
-In this chapter I'll introduce the technologies and the phrases that need to be described for proper understanding of my thesis work.
+In this chapter I will introduce the technologies and the phrases that need to be described for proper understanding of my thesis work.
 Some of these technologies were only considered during the designing part of the thesis, while others were also present 
 during the implementation.
 
@@ -100,7 +100,7 @@ during the implementation.
 	explicitly writing the details for the remote communication. 
 	Via this the programmer writes essentially the same code regardless that the subroutine is local or remote.
 
-	At the start of the thesis, Refinery doesn't use any RPC libraries, however the use of one (like gRPC) could be used for the model generation service implementation.
+	At the start of the thesis, Refinery does not use any RPC libraries, however the use of one (like gRPC) could be used for the model generation service implementation.
 
 \section{gRPC} \label{backgrgrpc}
 	gRPC (gRPC Remote Procedure Calls) \cite{grpcwiki} is a remote procedure call (RPC) (section \ref{backgrpc}) framework. 
@@ -126,7 +126,7 @@ during the implementation.
 		A cancellation terminates the RPC immediately.
 	\end{itemize}
 
-	The current implementation of Refinery doesn't use the gRPC framework. However, it can be a possible solution for the generator microservice implementaiton. 
+	The current implementation of Refinery does not use the gRPC framework. However, it can be a possible solution for the generator microservice implementaiton. 
 	The remote method execution can lower the resource usage of the backend server.
 
 \section{WebSocket} \label{backgrwebsocket}
@@ -139,21 +139,21 @@ during the implementation.
 	The following part is taken from RFC 6455 \cite{websocket}, which describes why the creation of WebSocket procotol was needed.
 
 	\textit{
-		"Creating web applications using only HTTP, that need bidirectional
+		`Creating web applications using only HTTP, that need bidirectional
 		communication between a client and a server has a major problem. 
 		It requires the abuse of HTTP to poll the
 		server for updates while sending upstream notifications as distinct
 		HTTP calls.
-		This results in a variety of problems:"
+		This results in a variety of problems:'
 	}
 	\begin{enumerate}
-		\item \textit{"The server is forced to use a number of different underlying TCP
+		\item \textit{`The server is forced to use a number of different underlying TCP
 		connections for each client: one for sending information to the
-		client and a new one for each incoming message."}
-		\item \textit{"The wire protocol has a high overhead, with each client-to-server
-		message having an HTTP header."}
-		\item \textit{"The client-side script is forced to maintain a mapping from the
-		outgoing connections to the incoming connection to track replies."}
+		client and a new one for each incoming message.'}
+		\item \textit{`The wire protocol has a high overhead, with each client-to-server
+		message having an HTTP header.'}
+		\item \textit{`The client-side script is forced to maintain a mapping from the
+		outgoing connections to the incoming connection to track replies.'}
 	\end{enumerate}
 
 	\begin{figure}[h!]
@@ -161,13 +161,13 @@ during the implementation.
 		\caption{Regular HTTP connection}
 	\end{figure}
 
-	\textit{"A simpler solution would be to use a single TCP connection for
+	\textit{`A simpler solution would be to use a single TCP connection for
 	traffic in both directions. This is what the WebSocket Protocol
-	provides. A solution for these HTTP polling scenarios."}
+	provides. A solution for these HTTP polling scenarios.'}
 
 	After the initial WebSocket handshake, the communication protocol is upgraded to WebSocket from HTTP.
 	If no communicaiton is happening, the connection is kept alive between the two communicating endpoints via the use of ping and pong messages.
-	If a ping sender endpoint doesn't receive a pong response, the connection is lost, and the endpoints are disconnected.
+	If a ping sender endpoint does not receive a pong response, the connection is lost, and the endpoints are disconnected.
 	Other than that, the protocol allows for full bidirectional real-time messaging to the endpoints.
 
 	\begin{figure}[h!]
@@ -239,12 +239,12 @@ during the implementation.
 			of its exploding popularity with businesses. Scaling allows the businesses to pay only for the resources that
 			they truly need.
 			\begin{itemize}
-				\item \textbf{Vertical scaling:} (also referred to as “scaling up” or “scaling down”) 
+				\item \textbf{Vertical scaling:} (also referred to as `scaling up' or `scaling down') 
 				You add or subtract power to an existing cloud server upgrading memory (RAM),
 				storage or processing power (CPU).
 				Usually this means that the scaling has an upper limit based on the capacity of the server
 				or machine being scaled; scaling beyond that often requires downtime.
-				\item \textbf{Horizontal scaling:} (also referred to as "scaling in" or "scaling out"), 
+				\item \textbf{Horizontal scaling:} (also referred to as `scaling in' or `scaling out'), 
 				You add more resources like servers to your system to spread out the workload across machines, 
 				which in turn increases performance and storage capacity. 
 				Horizontal scaling is especially important for businesses with high availability services requiring 

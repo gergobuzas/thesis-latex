@@ -23,7 +23,7 @@
 	unexpected operation happens, the generation will not be stalled and use resources in a locked state.
 
 	The editor and the generator can be deployed together. During development phase, the backend and the generator server can be 
-	deployed together, via the gradle "run" task. This starts running both the generator microservice and the backend locally.
+	deployed together, via the gradle `run' task. This starts running both the generator microservice and the backend locally.
 	Other than that a docker compose (\ref{Docker images}) file was written, so that the containerized applications can be run locally.
 
 	One optional requirement was not satisfied by this implementation. The creation of other type of clients other than the browser
@@ -71,7 +71,7 @@
 			those would not be able to fit on a single EC2 instance. The auto scaling acted accordingly, and deployed the services on two 
 			separate EC2 instance. 
 
-			The "REFINERY\_MODEL\_GENERATION\_THREADS" environment variable was not set in the task configurations. As a result, the tasks ran with only 1 thread
+			The `REFINERY\_MODEL\_GENERATION\_THREADS' environment variable was not set in the task configurations. As a result, the tasks ran with only 1 thread
 			allocated for the model generation requests.
 			This is the default setting of for the deployment, and the old implementation is deployed in production with this setting.
 
@@ -111,7 +111,7 @@
 				These tests were performed with two t3.micro EC2 instances running at the start. These VMs have 2vCPUs and 1GB of memory. I allocated
 				2vCPUs and 0.9GBs of memory for each task. 
 
-				The "REFINERY\_MODEL\_GENERATION\_THREADS" environment variable, contrary to the test in \ref{firsttest}, was set in the task configurations. 
+				The `REFINERY\_MODEL\_GENERATION\_THREADS' environment variable, contrary to the test in \ref{firsttest}, was set in the task configurations. 
 				I set the value of it to be 4. I chose 4, because the t3.micro EC2 instances each have 2 vCPUs with 4 computational threads.
 
 				The results were as follows:

@@ -105,7 +105,7 @@
 					\item relationsMetadataQueue: Queues relation metadata details.
 					\item partialInterpretationQueue: Handles intermediate model interpretation data.
 				\end{itemize} 
-				The queues are accessed with timeout constraints to prevent indefinite blocking during retrieval. The timeout is set up by the class'
+				The queues are accessed with timeout constraints to prevent indefinite blocking during retrieval. The timeout is set up by the class's
 				timeout variable. 
 				
 				The LinkedBlockingQueue allowed the onText method, to put the received generation
@@ -168,13 +168,13 @@
 				 received over the 
 				WebSocket sessions. 
 				
-				When a message of type "generationRequest" is received, the endpoint extracts generation details 
+				When a message of type `generationRequest' is received, the endpoint extracts generation details 
 				such as the unique identifier (UUID), random seed, and problem description. The data is sent by the client (section \ref{GeneratorWebSocketEndpoint} 
 				and section \ref{ModelRemoteGenerationWorker}) via JSON, so extracting the
 				needed key-value pairs is straighforward. These are then forwarded to the ModelGeneratorDispatcher, 
 				which manages the actual model generation task.
 
-				\label{serverendpointcancel}For "cancel" messages, the endpoint instructs the ModelGeneratorDispatcher to cancel an ongoing generation task associated with the provided uuid.
+				\label{serverendpointcancel}For `cancel' messages, the endpoint instructs the ModelGeneratorDispatcher to cancel an ongoing generation task associated with the provided uuid.
 
 				Any errors during the WebSocket communication are captured, logged.
 
@@ -244,7 +244,7 @@
 
 	\section{Containerization}\label{Containerization}
 		The new generator microservice was added 
-		to the "run" task of the backend gradle project, and as such, the workings of the application could be tested locally in a manual fashion. 
+		to the `run' task of the backend Gradle project, and as such, the workings of the application could be tested locally in a manual fashion. 
 		
 		Containerization (\ref{backgcontainer}) was the next step in 
 		updating our application. 
@@ -298,7 +298,7 @@
 			for the generator microservice called refinery-generator and the backend server called refinery-language-web.
 			In the task configuration, I set the tasks to run on EC2 instances, provided the belonging docker registry link for the service,
 			assigned the port mappings for the appropiate listening ports, and set the environment variables, 
-			such as the generation host and port. The refinery-language-web task definition needed the "REFINERY\_GENERATOR\_WS\_HOST" to 
+			such as the generation host and port. The refinery-language-web task definition needed the `REFINERY\_GENERATOR\_WS\_HOST' to 
 			be equal to the load balancer of the generator microservice's load balancer (this had several issues as explained 
 			in section \ref{ALB NAT}).
 			I set the networking mode for both tasks to be awsvpc, as they would be deployed on the same Virtual Private Cloud.
@@ -374,14 +374,14 @@
 		forwarded to the running microservice. A health check has to be put in use, so that the load balancer can register the running instances.
 
 		In my implementation of the generator server at section \ref{GeneratorServerEndpoint}, I only created a WebSocket server. However, Jetty 
-		WebSocket servers won't respond to regular HTTP requests. With this original implementation, the health check for the load balancer would
-		not work: it always signaled that the task was not running, as it wouldn't respond to the curl http requests towards the default path (/).
+		WebSocket servers would not respond to regular HTTP requests. With this original implementation, the health check for the load balancer would
+		not work: it always signaled that the task was not running, as it would not respond to the curl http requests towards the default path (/).
 
-		As a workaround, I created a servlet called HealthCheckServlet, which responds to HTTP get requests (section \ref{backgrhttp}) at the path "/healthcheck",
-		by returning a "Server works!" plain text.
+		As a workaround, I created a servlet called HealthCheckServlet, which responds to HTTP get requests (section \ref{backgrhttp}) at the path `/healthcheck',
+		by returning a `Server works!' plain text.
 
 		I added the servlet to the ServerLauncher of the generator microservice. By this, the load balancer can ensure the healthy state of the 
-		the server instances, by sending a curl request to the "/healthcheck" path of the generator server.
+		the server instances, by sending a curl request to the `/healthcheck' path of the generator server.
 
 	\subsection{Application Load Balancer and NAT} \label{ALB NAT}
 		During the deployment process, I faced persistent issues with the backend failing to connect to the generator microservice 

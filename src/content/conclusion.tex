@@ -20,7 +20,7 @@
 	generator microservice constantly running and being utilized, as the hourly rates are doubled.
 
 	\section{Future work}
-		The current implementation of the generator microservice doesn't handle threadpools correctly at the server side, as seen in \ref{testthree}.
+		The current implementation of the generator microservice does not handle threadpools correctly at the server side, as seen in \ref{testthree}.
 		There is no limitation set for the maximum threads that can be started.
 		This caused an issue where the microservice would slow down drastically, and generation responses would not be received 
 		at the client side. The fix for this should include the usage of Java's ExecutorService for the threadpools.
