@@ -2,10 +2,13 @@
 
 	This chapter delves into the implementation of the planned architecture defined in section \ref{archdecision}.
 	First I will introduce the starting point of the project.
-	Then I will go into detail about how the backend creates a client, which communicates with the generator microservice. Finally I will go into detail
+	Then I will go into detail about the implementation of a client within the backend, which communicates with 
+	the generator microservice. Finally I will go into detail
 	regarding the inner workings of the generator server.
 
 	The starting backend's class diagram can be found in the appendix at \ref{startingbackenduml}.
+	The implemented generator client can be seen at \ref{backendclientuml}.
+	The implemented generator microservice can be seen at \ref{generatorserveruml}.
 
 	\section{Starting point} \label{Starting point}
 		First, I will introduce the starting point of the project, so we get an overview, of how the backend initially worked regarding the model
@@ -15,9 +18,8 @@
 		the generation related methods.
 
 		\subsection{ModelGenerationService} \label{ModelGenerationService}
-			The \textit{ModelGenerationService} is a core component of the application, designed to handle the initiation and management of
-			model generation tasks on the backend server. This class encapsulates the logic for coordinating the execution of these 
-			tasks, while providing a seamless interface for both initiating and canceling model generation processes.
+			The \textit{ModelGenerationService} is a core component of the application, designed to handle the starting and management of
+			model generation workers (section \ref{ModelGenerationWorker}) on the backend server. 
 			It is a singleton class, so from a generator point of view, we might consider this class to be the real dispatcher.
 
 			The key features and responsibilities of the class include:
@@ -27,63 +29,39 @@
 				It retrieves configuration parameters such as the model generation timeout 
 				from the environment, defaulting to 600 seconds if not explicitly set.
 				\item{\textbf{Model Generation Workflow:}} The main responsibility of the service is to execute model generation requests 
-				by instantiating workers (\textit{ModelGenerationWorker}), using multithreading. 
-				The workers perform the actual computational tasks:
-				\begin{enumerate}
-					\item The generateModel method is provided the PushWebDocumentAccess instance, which holds the model described by the partial modeling language
-					of Refinery.
-					\item A ModelGenerationWorker is instantiated and configured with the document state (provided by the PushWebDocumentAccess), 
-					a random seed and a timeout value.
-					\item The worker is started, as well as the resource heavy generation process. 
-					The worker is started on a background thread. 
-					The thread pool of for the generation workers can be configured via the 
-					\textit{REFINERY\_MODEL\_GENERATION\_THREAD\_COUNT} \cite{generationthread} environment variable.
-				\end{enumerate}
-				\item{\textbf{Cancellation Mechanism:}}
-				During this process listed above, the service interacts with the document’s \textit{ModelGenerationManager} to monitor the worker's activity.
+				by instantiating workers (\textit{ModelGenerationWorker}), using multithreading. The amount of threads 
+				where the workers can be run is set via an environment variable (REFINERY\_MODEL\_GENERATION\_THREAD\_COUNT 
+				\cite{generationthread}).
+
+				The service interacts with the document’s \textit{ModelGenerationManager} to monitor the workers.
 				The timeout and cancellation is handled via the use of cancelation tokens.
 			\end{itemize}
-			The use of dependency injection for worker provisioning ensures that the service is decoupled from the specific implementation details of task execution, making it easier to extend or modify in the future.
+			The use of dependency injection for worker provisioning ensures that the service is decoupled from the specific implementation details
+			of task execution, making it easier to extend or modify in the future.
 
-		\subsection{ModelGenerationWorker}
-			The \textit{ModelGenerationWorker} class is the backbone of the backend’s model generation process. 
-			It encapsulates the logic to handle the generation of computational models using a multithreaded approach, 
-			ensuring responsiveness and reliability during execution. 
-			Each instance of this class operates independently to process a specific model generation request.	
+		\subsection{ModelGenerationWorker} \label{ModelGenerationWorker}
+			The \textit{ModelGenerationWorker} class is where the actual model generations happen. 
+			It operates as an independent thread, processing generation requests in a thread-safe and scalable manner. 
+			Its multithreaded design uses Java's ExecutorService to manage task execution efficiently within a threadpool.
 
-			The key features of the class include thread-safe execution, error management, scalable design via the use of the ExecutorService
-			and the thread pool based multithreaded execution that it offers.
+			Each worker instance is uniquely identified by their UUID. Before execution, the worker’s state is configured 
+			with essential inputs, such as the document containing the generation request, a random seed, and a timeout value. 
+			This sets up the generation and prepares the worker for execution.
 
-			The main responsibilites of the class are:
-			\begin{itemize}
-				\item{\textbf{Task Management:}} Each worker is uniquely identified by a UUID, allowing precise tracking and management of tasks.
-				The worker implements the Runnable interface, enabling it to be executed as a separate thread in a thread pool.
-				\item{\textbf{State Configuration:}} The worker’s state is set before execution via the setState method. This method configures the input document (PushWebDocument), random seed, and timeout duration required for the model generation process.
-				The input text is extracted from the document and forms the basis of the model generation workflow.
-				\item{\textbf{Model Generation Execution:}} The run method drives the core workflow. It first initializes a timeout mechanism and notifies the system that model generation has begun.
-				The doRun method carries out the actual model generation, leveraging the following components:
-				\begin{itemize}
-					\item {\textbf{ProblemLoader:}} Parses the input text into a formal problem representation.
-					\item {\textbf{ModelGenerator:}} Creates a generator instance to process the problem and produce a solution.
-					\item {\textbf{MetadataCreator:}} Extracts metadata (nodes and relations) from the generated model for further processing.
-					\item {\textbf{PartialInterpretation2Json:}} Converts intermediate results into a JSON format for downstream tasks.
-				\end{itemize}
-				\item{\textbf{Result Notification:}} Once a model is successfully generated, or if an error occurs, the worker notifies the document's precomputation listeners with the result. This ensures that other system components are informed of the status of the generation process.
-				\item{\textbf{Cancellation Handling:}} The worker supports graceful cancellation through the cancel method. It uses a CancellationToken to periodically check whether the operation has been canceled and interrupts execution if necessary.
-				A timeout mechanism automatically cancels the task if it exceeds the configured duration, ensuring that no worker consumes resources indefinitely.
-			\end{itemize}
+			The worker’s primary responsibility is to handle the computational workflow, 
+			which includes parsing the input into a formal problem, generating a solution, extracting metadata, 
+			and converting results into a JSON (section \ref{backgrjson}) format. 
+			Throughout this process, the worker monitors for cancellation requests and timeout. 
 
-			The ModelGenerationWorker is the enabler of backend-driven computation.
-			This implementation effectively delegates computationally intensive tasks, trying to minimize 
-			the burden on client communication.
+			Once a task is completed, the worker notifies the service whether the generation was successful or ran into an error. 
 
 	\section{Generator Client} \label{Generator Client}
 			Now that the deployed implementation has been been described, we can restructure our application, so that the 
 			model generation is done via the generation microservice.
 
-			The design of the \textit{ModelGenerationService} is scalable and modular:
-			By delegating the actual computation to workers (ModelGenerationWorker), the service separates orchestration from execution, 
-			allowing for future modifications. 
+			The design of the \textit{ModelGenerationService} (section \ref{ModelGenerationService}) is scalable and modular:
+			By delegating the actual computation to workers (ModelGenerationWorker, section \ref{ModelGenerationWorker}), 
+			the service separates dispatching and execution. 
 			
 			This comes in handy, when implementing our client for communication with
 			the generator server. We have to implement a client, which communicates generation requests towards the generator server,
@@ -92,9 +70,11 @@
 			The implemented client's UML class diagram, alongside the modifications to the backend can be seen in appendix \ref{backendclientuml}.
 
 			\subsection{GeneratorWebSocketEndpoint}
-			The client-side component responsible for sending generation requests and handling responses is implemented as the GeneratorWebSocketEndpoint class,
-			leveraging Jetty's WebSocket API. This endpoint facilitates asynchronous communication with the generator microservice, 
-			ensuring efficient request management over WebSocket connections. 
+				This class is responsible for sending generation requests and handling responses is implemented as the 
+				GeneratorWebSocketEndpoint class,
+				using Jetty's WebSocket API (section \ref{backgrjetty}). 
+				This endpoint facilitates asynchronous communication with the generator microservice, 
+				ensuring efficient request management over WebSocket connections. 
 
 			In this section, I'll try to describe the key responsibilities and functionalities of the GeneratorWebSocketEndpoint class.
 			\subsubsection{WebSocket Configuration} 
@@ -403,7 +383,7 @@
 		for the gradle project indexing was huge. The 8-core Ryzen 7 CPU was sitting at around 70\%  usage, alongside 
 		16 gigabytes of my system memory being 92-99\% occupied. 
 		
-		The initial indexing of the Gradle project took around 45-60 minutes. Even upon completion the resource usages didn't improve. 
+		The initial indexing of the Gradle project took around 45-60 minutes. Even upon completion the resource usages did not improve. 
 		The same amount of RAM
 		was used by the WSL and it would not become lower. 
 
@@ -425,12 +405,12 @@
 
 		With my project, a new distribution for the generator server was created. Originally I wanted to implement the deduplication in a way,
 		where if two of the three distributions contained a JAR, the JAR would be put in the common\_libs folder.
-		However, this implementation didn't seem too useful. In this case all of the resources needed for the web distribution were added to the common folder.
+		However, this implementation did not seem useful. In this case all of the resources needed for the web distribution were added to the common folder.
 		As such, the shell script would have been needed to be modified, so that it could handle empty dist folders during the pipeline. On the other hand
 		the files of the common library would be put in the base docker image, even tho it might not be needed for the running of our application.
 
 		I decided to add only those resources to the common library, which are used in all of the created docker images. 
-		As a result, the base image is not bloated and the shell script didn't need many modifications.
+		As a result, the base image is not bloated and the shell script did not need many modifications.
 
 	\subsection{Health check for the generator server} \label{healthcheck}
 		When deploying an application with the use of an Application Load Balancer, a target group of the tasks has to be specified.
